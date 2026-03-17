@@ -2444,8 +2444,10 @@ async function enviarMovimiento() {
 
   try {
     let errores = 0;
+    const emailCliente = (document.getElementById("emailCliente")?.value || "").trim();
     for (let idx = 0; idx < carrito.length; idx++) {
-      const item = carrito[idx];
+      const item     = carrito[idx];
+      const esUltimo = idx === carrito.length - 1;
 
       if (esVenta) {
         // Enviar como venta con FormData (igual que movimiento — evita CORS preflight)
