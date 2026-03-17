@@ -1641,8 +1641,8 @@ function switchTab(tab, btn) {
 
 const SHEET_ID         = "1wIvmRNp6W4n4tj6oORNXr-nvbI_6ENGoZhL2vMMag80";
 const GID_STOCK        = "0";
-const GID_MOV          = "116787606";
-const GID_VENTAS       = "1258829145";
+const GID_MOV          = "1052991118";
+const GID_VENTAS       = "1832283235";
 const SHEET_PRECIOS_ID = "1JND70KqSy900ADjMKbC5Qz5Yi2pJzyLPjQVxViq7pZQ";
 
 let todosLosProductos = [];
@@ -2420,6 +2420,7 @@ async function enviarMovimiento() {
   const tipo        = tipoSeleccionado;
   const responsable = document.getElementById("movResponsable").value.trim();
   const obs         = document.getElementById("movObs").value.trim();
+  const medioPago   = getMedioPago();
   const esVenta     = tipo === "SALIDA";
 
   if (!tipo)             { alert("Seleccioná el tipo de movimiento."); return; }
