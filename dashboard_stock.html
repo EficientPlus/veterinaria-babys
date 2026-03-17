@@ -1639,7 +1639,7 @@ function switchTab(tab, btn) {
   if (tab === 'dashboard') renderDashboard();
 }
 
-const SHEET_ID         = "1wlvmRNp6W4n4tj6oORNXr-nvbl_6ENGoZhL2vMMag80";
+const SHEET_ID         = "1wIvmRNp6W4n4tj6oORNXr-nvbI_6ENGoZhL2vMMag80";
 const GID_STOCK        = "0";
 const GID_MOV          = "116787606";
 const GID_VENTAS       = "1258829145";
@@ -2545,7 +2545,7 @@ function ejecutarAccionChat(accion, etiqueta, btn) {
   let respuesta = '';
 
   if (accion === 'contactar-proveedor' || etiqueta.toLowerCase().includes('contactar')) {
-    const hojaContactos = 'https://docs.google.com/spreadsheets/d/1wlvmRNp6W4n4tj6oORNXr-nvbl_6ENGoZhL2vMMag80/edit';
+    const hojaContactos = 'https://docs.google.com/spreadsheets/d/1wIvmRNp6W4n4tj6oORNXr-nvbI_6ENGoZhL2vMMag80/edit';
     if (Object.keys(porProveedor).length > 0) {
       const lineas = Object.entries(porProveedor).map(([prov, prods]) =>
         `📞 **${prov}**\n${prods.map(p => `• ${p}`).join('\n')}`
