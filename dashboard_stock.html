@@ -2095,7 +2095,7 @@ function renderPrecios(rows) {
     const r=rows[i], proveedor=(r[0]||"").trim(), desc=(r[2]||"").trim();
     if (!desc||!proveedor) continue;
     const codigo=(r[1]||"").trim();
-    const parsePrecioAR=v=>parseFloat(String(v).replace(/\$/g,"").replace(/\./g,"").replace(/,/g,".").trim())||0;
+    const parsePrecioAR=v=>{const s=String(v).replace(/\$/g,"").replace(/\s/g,"").trim();if(!s)return 0;if(s.includes(",")&&s.includes(".")){return parseFloat(s.replace(/\./g,"").replace(",","."))||0;}if(s.includes(",")&&!s.includes(".")){return parseFloat(s.replace(",","."))||0;}return parseFloat(s)||0;};
     const sinIVA=parsePrecioAR(r[3]),conIVA=parsePrecioAR(r[4]),venta=parsePrecioAR(r[5]);
     const vigencia=(r[7]||"").trim(), stock=(r[8]||"Disponible").trim();
     const costo=conIVA||(sinIVA>0?sinIVA*1.21:0);
