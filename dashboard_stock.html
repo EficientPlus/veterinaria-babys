@@ -2169,8 +2169,9 @@ function renderPrecios(rows) {
       else if(margen>=20){margenClass="medio";margenLabel=margen+"%";}
       else{margenClass="bajo";margenLabel=margen+"%";}
     }
+    const categoria = (r[10] || "").trim();
     proveedores.add(proveedor);
-    preciosDataGlobal.push({desc,proveedor,codigo,sinIVA,conIVA,costo,venta,vigencia,stock,margen,margenClass,margenLabel});
+    preciosDataGlobal.push({desc,proveedor,codigo,sinIVA,conIVA,costo,venta,vigencia,stock,margen,margenClass,margenLabel,categoria});
   }
   const sel=document.getElementById("preciosProveedor");
   sel.innerHTML='<option value="">Todos los proveedores</option>';
