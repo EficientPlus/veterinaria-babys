@@ -1783,10 +1783,6 @@ function renderStock(rows) {
   document.getElementById("numDanger").textContent = numDanger;
   document.getElementById("numValue").textContent  = "$" + Math.round(valorTotal).toLocaleString("es-AR");
 
-  // Construir filtros de categoría
-  const categorias = new Set(stockDataGlobal.map(p => p.categoria).filter(c => c && c !== "—"));
-  buildCategoryFilters(categorias);
-
   stockDataGlobal = [];
   for (let i=dataStart; i<rows.length; i++) {
     const row=rows[i], nombre=(row[1]||"").trim();
@@ -1797,6 +1793,10 @@ function renderStock(rows) {
     stockDataGlobal.push({nombre,categoria:(row[2]||"").trim(),stock,minimo,maximo,precio,
       estado:stock===0?"Sin stock":stock<=minimo?"Reponer":"OK"});
   }
+
+  // Construir filtros de categoría DESPUÉS de poblar stockDataGlobal
+  const categorias = new Set(stockDataGlobal.map(p => p.categoria).filter(c => c && c !== "—"));
+  buildCategoryFilters(categorias);
 
   const banner=document.getElementById("alertBanner");
   if (numDanger>0) {
