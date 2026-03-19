@@ -1755,12 +1755,34 @@ function renderStock(rows) {
   }
 
   for (let i=dataStart; i<rows.length; i++) {
-    const row=rows[i], nombre=(row[1]||"").trim(), cat=(row[2]||"").trim();
+    const row=rows[i], nombre=(row[1]||"").trim();
     const pNum = v => parseFloat(String(v).replace(/[$.,\s]/g,""))||0;
     const stock=pNum(row[4]), minimo=pNum(row[5]);
     const maximo=pNum(row[6]), precio=pNum(row[7]);
     if (!nombre) continue;
     valorTotal += stock * precio;
+
+    // Obtener categoría: Sheet → Proveedores → Keywords
+    let cat = (row[2]||"").trim();
+    if (!cat && preciosDataGlobal.length > 0) {
+      const nombreL = nombre.toLowerCase();
+      const match = preciosDataGlobal.find(p => {
+        const desc = (p.desc||"").toLowerCase();
+        return desc === nombreL || desc.includes(nombreL) || nombreL.includes(desc.split(" ").slice(0,3).join(" "));
+      });
+      if (match && match.categoria) cat = match.categoria;
+    }
+    if (!cat) {
+      const d = nombre.toLowerCase();
+      if (/aliment|comida|croqueta|kibble|dieta|seco|húmedo|lata|pouch|balanceado|cachorro|adulto|senior|premium/.test(d)) cat="Alimentos";
+      else if (/pulga|garrapath|antipar|pipeta|desparasit|vermífug|antipulg|tick|flea|parásit/.test(d)) cat="Antiparasitarios";
+      else if (/juguete|pelota|cuerda|soga|hueso|mordedor|palo|fetch|tira|anillo|frisbee|látex|goma|caucho|peluche|ratón|pluma/.test(d)) cat="Juguetes";
+      else if (/shampoo|champú|baño|higiene|limpieza|desodor|cepillo|peine|toallita|dental|pasta dent|oído|ojo|tear/.test(d)) cat="Higiene";
+      else if (/collar|correa|arnés|ropa|cama|colchón|manta|transporte|jaula|bebeder|comedero|acceso|bowl|plato|bolso|mochila|casilla/.test(d)) cat="Accesorios";
+      else if (/supleme|vitamina|mineral|omega|probiótic|articular|condroit|prebiótic|calcio|hierro/.test(d)) cat="Suplementos";
+      else if (/medicam|antibiótic|antiinflamat|analgésic|vacuna|comprimido|jarabe|gotas|ungüento|crema vet/.test(d)) cat="Medicamentos";
+      else cat="Otros";
+    }
 
     let estadoClass, estadoLabel, estadoIcon;
     if (stock===0)          { estadoClass="danger"; estadoLabel="Sin stock"; estadoIcon="🚨"; numDanger++; }
