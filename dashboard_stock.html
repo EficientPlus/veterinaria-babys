@@ -1157,6 +1157,9 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
                 </div>
               </div>
             </div>
+            <!-- Filtros por categoría (se generan dinámicamente) -->
+            <div id="categoriasFiltro" style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 18px;border-bottom:1px solid var(--border);"></div>
+
             <div style="overflow-x:auto;">
               <table>
                 <thead>
@@ -1780,6 +1783,10 @@ function renderStock(rows) {
   document.getElementById("numDanger").textContent = numDanger;
   document.getElementById("numValue").textContent  = "$" + Math.round(valorTotal).toLocaleString("es-AR");
 
+  // Construir filtros de categoría
+  const categorias = new Set(stockDataGlobal.map(p => p.categoria).filter(c => c && c !== "—"));
+  buildCategoryFilters(categorias);
+
   stockDataGlobal = [];
   for (let i=dataStart; i<rows.length; i++) {
     const row=rows[i], nombre=(row[1]||"").trim();
@@ -1846,32 +1853,59 @@ function renderMovimientos(rows) {
 function filtrar(tipo, btn) {
   document.querySelectorAll(".filter-tab").forEach(t=>t.classList.remove("active"));
   btn.classList.add("active");
-  const q = (document.getElementById("stockSearch")?.value || "").toLowerCase().trim();
+  aplicarFiltros();
+}
+
+function filtrarCategoria(cat, btn) {
+  document.querySelectorAll(".cat-tab").forEach(t=>{ t.style.background="transparent"; t.style.color="var(--text-2)"; t.style.borderColor="var(--border)"; });
+  btn.style.background = "rgba(99,102,241,0.09)";
+  btn.style.color      = "#a78bfa";
+  btn.style.borderColor= "rgba(99,102,241,0.25)";
+  btn.dataset.active   = "1";
+  document.querySelectorAll(".cat-tab").forEach(t=>{ if(t!==btn) t.dataset.active="0"; });
+  aplicarFiltros();
+}
+
+function aplicarFiltros() {
+  const activeEstado = document.querySelector(".filter-tab.active");
+  const tipo = activeEstado?.textContent.includes("problema") ? "problema"
+             : activeEstado?.textContent.includes("OK") ? "ok" : "todos";
+  const activeCat = document.querySelector(".cat-tab[data-active='1']");
+  const cat = activeCat?.dataset.cat || "";
+  const q   = (document.getElementById("stockSearch")?.value || "").toLowerCase().trim();
+
   todosLosProductos.forEach(tr => {
-    const nombre = (tr.querySelector(".product-name")?.textContent || "").toLowerCase();
-    const cat    = (tr.querySelector(".product-cat")?.textContent  || "").toLowerCase();
-    const matchQ = !q || nombre.includes(q) || cat.includes(q);
+    const nombre  = (tr.querySelector(".product-name")?.textContent || "").toLowerCase();
+    const trCat   = (tr.querySelector(".product-cat")?.textContent  || "").toLowerCase();
+    const matchQ  = !q   || nombre.includes(q) || trCat.includes(q);
+    const matchCat= !cat || trCat === cat.toLowerCase();
     let matchF = true;
     if (tipo === "problema") matchF = tr.dataset.estado === "warn" || tr.dataset.estado === "danger";
     else if (tipo === "ok")  matchF = tr.dataset.estado === "ok";
-    tr.style.display = (matchQ && matchF) ? "" : "none";
+    tr.style.display = (matchQ && matchF && matchCat) ? "" : "none";
   });
 }
 
-function filtrarStock() {
-  const activeBtn = document.querySelector(".filter-tab.active");
-  const tipo = activeBtn?.textContent.includes("problema") ? "problema"
-             : activeBtn?.textContent.includes("OK") ? "ok" : "todos";
-  const q = (document.getElementById("stockSearch")?.value || "").toLowerCase().trim();
-  todosLosProductos.forEach(tr => {
-    const nombre = (tr.querySelector(".product-name")?.textContent || "").toLowerCase();
-    const cat    = (tr.querySelector(".product-cat")?.textContent  || "").toLowerCase();
-    const matchQ = !q || nombre.includes(q) || cat.includes(q);
-    let matchF = true;
-    if (tipo === "problema") matchF = tr.dataset.estado === "warn" || tr.dataset.estado === "danger";
-    else if (tipo === "ok")  matchF = tr.dataset.estado === "ok";
-    tr.style.display = (matchQ && matchF) ? "" : "none";
-  });
+function filtrarStock() { aplicarFiltros(); }
+
+function buildCategoryFilters(categorias) {
+  const container = document.getElementById("categoriasFiltro");
+  if (!container) return;
+  const sorted = [...categorias].sort();
+  container.innerHTML = `
+    <button class="cat-tab" data-cat="" data-active="1"
+      onclick="filtrarCategoria('',this)"
+      style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(99,102,241,0.25);background:rgba(99,102,241,0.09);color:#a78bfa;font-family:'Inter',sans-serif;transition:all 0.2s;">
+      Todas
+    </button>
+    ${sorted.map(c => `
+      <button class="cat-tab" data-cat="${c}" data-active="0"
+        onclick="filtrarCategoria('${c.replace(/'/g,"\\'")}',this)"
+        style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-2);font-family:'Inter',sans-serif;transition:all 0.2s;">
+        ${c}
+      </button>
+    `).join("")}
+  `;
 }
 
 // ── AI CHAT ───────────────────────────────────────────────────────────────
