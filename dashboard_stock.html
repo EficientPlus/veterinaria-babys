@@ -1229,6 +1229,7 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
                     <th>Precio Compra</th>
                     <th>Precio Público</th>
                     <th>Margen</th>
+                    <th>Categoría</th>
                     <th style="min-width:80px;">Stock</th>
                     <th>Vigencia</th>
                   </tr>
@@ -2245,6 +2246,7 @@ function filtrarPrecios() {
       </td>
       <td>${ventaCell}</td>
       <td><span class="margen-pill ${p.margenClass}">${p.margenLabel}</span></td>
+      <td><span style="font-size:11.5px;font-weight:600;color:#a78bfa;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);padding:3px 8px;border-radius:5px;white-space:nowrap;">${p.categoria||"—"}</span></td>
       <td>${stockBadge}</td>
       <td style="font-size:12px;color:#94A3B8;font-weight:500;">${p.vigencia}</td>`;
     tbody.appendChild(tr);
