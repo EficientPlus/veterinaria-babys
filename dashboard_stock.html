@@ -1691,12 +1691,16 @@ async function init() {
   try {
     const [stockRows, movRows] = await Promise.all([fetchCSV(GID_STOCK), fetchCSV(GID_MOV)]);
 
+    // Cargar precios primero para que las categorías estén disponibles al renderizar stock
+    try {
+      const preciosRows = await fetchCSV_external(SHEET_PRECIOS_ID);
+      if (preciosRows && preciosRows.length > 1) renderPrecios(preciosRows);
+    } catch(e) {
+      document.getElementById("preciosCount").textContent = "No disponible";
+    }
+
     renderStock(stockRows);
     renderMovimientos(movRows);
-
-    fetchCSV_external(SHEET_PRECIOS_ID)
-      .then(r => { if (r && r.length > 1) renderPrecios(r); })
-      .catch(() => { document.getElementById("preciosCount").textContent = "No disponible"; });
 
     document.getElementById("loading").style.display = "none";
     document.getElementById("content").style.display = "block";
@@ -1790,7 +1794,32 @@ function renderStock(rows) {
     const pNum2 = v => parseFloat(String(v).replace(/[$.,\s]/g,""))||0;
     const stock=pNum2(row[4]), minimo=pNum2(row[5]);
     const maximo=pNum2(row[6]), precio=pNum2(row[7]);
-    stockDataGlobal.push({nombre,categoria:(row[2]||"").trim(),stock,minimo,maximo,precio,
+    let categoria=(row[2]||"").trim();
+
+    // Si no tiene categoría en el Sheet de Stock, buscar en preciosDataGlobal
+    if (!categoria && preciosDataGlobal.length > 0) {
+      const nombreL = nombre.toLowerCase();
+      const match = preciosDataGlobal.find(p => {
+        const desc = (p.desc||"").toLowerCase();
+        return desc === nombreL || desc.includes(nombreL) || nombreL.includes(desc.split(" ").slice(0,3).join(" "));
+      });
+      if (match && match.categoria) categoria = match.categoria;
+    }
+
+    // Fallback: inferir por palabras clave
+    if (!categoria) {
+      const d = nombre.toLowerCase();
+      if (/aliment|comida|croqueta|kibble|dieta|seco|húmedo|lata|pouch|balanceado|cachorro|adulto|senior|premium/.test(d)) categoria="Alimentos";
+      else if (/pulga|garrapath|antipar|pipeta|desparasit|vermífug|antipulg|tick|flea|parásit/.test(d)) categoria="Antiparasitarios";
+      else if (/juguete|pelota|cuerda|soga|hueso|mordedor|palo|fetch|tira|anillo|frisbee|látex|goma|caucho|peluche|ratón|pluma/.test(d)) categoria="Juguetes";
+      else if (/shampoo|champú|baño|higiene|limpieza|desodor|cepillo|peine|toallita|dental|pasta dent|oído|ojo|tear/.test(d)) categoria="Higiene";
+      else if (/collar|correa|arnés|ropa|cama|colchón|manta|transporte|jaula|bebeder|comedero|acceso|bowl|plato|bolso|mochila|casilla/.test(d)) categoria="Accesorios";
+      else if (/supleme|vitamina|mineral|omega|probiótic|articular|condroit|prebiótic|calcio|hierro/.test(d)) categoria="Suplementos";
+      else if (/medicam|antibiótic|antiinflamat|analgésic|vacuna|comprimido|jarabe|gotas|ungüento|crema vet/.test(d)) categoria="Medicamentos";
+      else categoria="Otros";
+    }
+
+    stockDataGlobal.push({nombre,categoria,stock,minimo,maximo,precio,
       estado:stock===0?"Sin stock":stock<=minimo?"Reponer":"OK"});
   }
 
