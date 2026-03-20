@@ -4509,7 +4509,7 @@ function filtrarPresProductos() {
   const dd = document.getElementById("presDropdown");
   if (!dd) return;
 
-  const fuente = todosLosProductos.length > 0 ? todosLosProductos : [];
+  const fuente = stockDataGlobal.length > 0 ? stockDataGlobal : [];
   const filtrados = q === ""
     ? fuente.slice(0, 40)
     : fuente.filter(p => p.nombre.toLowerCase().includes(q)).slice(0, 40);
