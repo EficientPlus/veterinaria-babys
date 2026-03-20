@@ -4744,146 +4744,153 @@ async function descargarPDFPresupuesto() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "mm", format: "a4" });
 
-  const W = 210, M = 16;
+  const W = 210, M = 14;
 
-  // ── Paleta estricta ───────────────────────────────────────
-  const BG    = [10,  10,  10 ];   // #0A0A0A  fondo página
-  const CARD  = [21,  22,  26 ];   // #15161A  todas las cards
-  const DIV   = [42,  43,  54 ];   // #2A2B36  divisores
-  const CYAN  = [101, 210, 213];   // #65D2D5  títulos y montos grandes
-  const LILA  = [157, 131, 245];   // #9D83F5  subtotales tabla
-  const GRIS  = [156, 163, 175];   // #9CA3AF  labels y fechas
-  const WHITE = [255, 255, 255];   // #FFFFFF  texto principal
-  const VERDE = [74,  222, 128];   // #4ADE80  chip estado
-  const VBG   = [5,   46,  22 ];   // #052E16  fondo chip verde
+  // ── Paleta final ──────────────────────────────────────────
+  const BG    = [13,  14,  21 ];   // #0D0E15  fondo página
+  const CARD  = [26,  28,  35 ];   // #1A1C23  cards
+  const BORDE = [42,  44,  53 ];   // #2A2C35  borde cards
+  const DIV   = [42,  43,  54 ];   // #2A2B36  divisores tabla
+  const CYAN  = [123, 211, 214];   // #7BD3D6  título principal
+  const CYAN2 = [101, 210, 213];   // #65D2D5  montos grandes y total
+  const LILA  = [157, 131, 245];   // #9D83F5  subtotales
+  const GRIS  = [156, 163, 175];   // #9CA3AF  labels y secundario
+  const WHITE = [255, 255, 255];   // texto principal
+  const VERDE = [74,  222, 128];   // #4ADE80  chip
+  const VBG   = [5,   46,  22 ];   // #052E16  fondo chip
+
+  const PAD = 6; // padding interno cards en mm
 
   const cliente = document.getElementById("presNombreCliente").value.trim();
   const obs     = document.getElementById("presObs").value.trim();
   const fecha   = new Date().toLocaleDateString("es-AR", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
   const total   = presCarrito.reduce((s, i) => s + i.cantidad * i.precio, 0);
-  let y = 0;
+  let y = 8;
 
-  // ── Fondo completo negro ──────────────────────────────────
+  // Fondo página
   doc.setFillColor(...BG);
   doc.rect(0, 0, W, 297, "F");
 
-  // ══ CARD 1: Encabezado ════════════════════════════════════
+  // ── CARD 1: Encabezado ────────────────────────────────────
+  const c1H = 28;
   doc.setFillColor(...CARD);
-  doc.roundedRect(M, 10, W - M * 2, 30, 3, 3, "F");
+  doc.roundedRect(M, y, W - M * 2, c1H, 3, 3, "F");
+  doc.setDrawColor(...BORDE);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(M, y, W - M * 2, c1H, 3, 3, "S");
 
-  // Título
-  doc.setFontSize(15);
+  doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...CYAN);
-  doc.text("Veterinaria Babys", M + 8, 23);
+  doc.text("Veterinaria Babys", M + PAD, y + 12);
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...GRIS);
-  doc.text("Presupuesto de compra", M + 8, 30);
+  doc.text("Presupuesto de compra", M + PAD, y + 20);
 
-  // Chip verde oscuro — fondo #052E16, texto #4ADE80
   doc.setFillColor(...VBG);
-  doc.roundedRect(W - M - 50, 16, 50, 10, 2, 2, "F");
+  doc.roundedRect(W - M - 50, y + 7, 50, 10, 2, 2, "F");
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...VERDE);
-  doc.text("PRESUPUESTO", W - M - 25, 22.5, { align: "center" });
+  doc.text("PRESUPUESTO", W - M - 25, y + 13.5, { align: "center" });
 
-  // Fecha
   doc.setFontSize(7.5);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...GRIS);
-  doc.text(fecha, W - M - 6, 33, { align: "right" });
+  doc.text(fecha, W - M - PAD, y + 24, { align: "right" });
+  y += c1H + 5;
 
-  y = 48;
-
-  // ══ CARD 2: Total ═════════════════════════════════════════
+  // ── CARD 2: Total ─────────────────────────────────────────
+  const c2H = 24;
   doc.setFillColor(...CARD);
-  doc.roundedRect(M, y, W - M * 2, 24, 3, 3, "F");
+  doc.roundedRect(M, y, W - M * 2, c2H, 3, 3, "F");
+  doc.setDrawColor(...BORDE);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(M, y, W - M * 2, c2H, 3, 3, "S");
 
   doc.setFontSize(7.5);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...GRIS);
   doc.text("TOTAL PRESUPUESTADO", W / 2, y + 8, { align: "center" });
-
-  doc.setFontSize(21);
+  doc.setFontSize(20);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(...CYAN);
+  doc.setTextColor(...CYAN2);
   doc.text(fmtPDF(total), W / 2, y + 19, { align: "center" });
-  y += 32;
+  y += c2H + 5;
 
-  // ══ CARD 3: Detalle ═══════════════════════════════════════
-  const filaH   = 9;
-  const cardH   = 9 + presCarrito.length * filaH + (cliente ? 10 : 0);
+  // ── CARD 3: Detalle ───────────────────────────────────────
+  const filaH  = 9;
+  const nFilas = presCarrito.length;
+  const c3H    = PAD + (cliente ? 12 : 0) + 9 + nFilas * filaH + 10 + PAD;
+
   doc.setFillColor(...CARD);
-  doc.roundedRect(M, y, W - M * 2, cardH + 8, 3, 3, "F");
+  doc.roundedRect(M, y, W - M * 2, c3H, 3, 3, "F");
+  doc.setDrawColor(...BORDE);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(M, y, W - M * 2, c3H, 3, 3, "S");
 
-  // Cliente (dentro de la card)
+  let iy = y + PAD;
+
   if (cliente) {
     doc.setFontSize(7.5);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...GRIS);
-    doc.text("CLIENTE", M + 6, y + 7);
+    doc.text("CLIENTE", M + PAD, iy + 6);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(...WHITE);
-    doc.text(cliente, W - M - 6, y + 7, { align: "right" });
+    doc.text(cliente, W - M - PAD, iy + 6, { align: "right" });
     doc.setDrawColor(...DIV);
     doc.setLineWidth(0.2);
-    doc.line(M + 4, y + 10, W - M - 4, y + 10);
-    y += 12;
+    doc.line(M + PAD, iy + 9, W - M - PAD, iy + 9);
+    iy += 12;
   }
 
-  // Header tabla — solo texto, sin fondo de color
+  const CX = { desc: M + PAD + 1, cant: M + 97, prec: M + 118, sub: M + 152 };
   doc.setFontSize(7.5);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...GRIS);
-  const CX = { desc: M + 6, cant: M + 97, prec: M + 117, sub: M + 150 };
-  doc.text("DESCRIPCIÓN",  CX.desc, y + 7);
-  doc.text("CANT.",        CX.cant, y + 7);
-  doc.text("PRECIO",       CX.prec, y + 7);
-  doc.text("SUBTOTAL",     CX.sub,  y + 7);
-
+  doc.text("DESCRIPCIÓN", CX.desc, iy + 6);
+  doc.text("CANT.",       CX.cant, iy + 6);
+  doc.text("PRECIO",      CX.prec, iy + 6);
+  doc.text("SUBTOTAL",    CX.sub,  iy + 6);
   doc.setDrawColor(...DIV);
-  doc.setLineWidth(0.3);
-  doc.line(M + 4, y + 9, W - M - 4, y + 9);
-  y += 9;
+  doc.setLineWidth(0.25);
+  doc.line(M + PAD, iy + 8, W - M - PAD, iy + 8);
+  iy += 9;
 
-  // Filas
   presCarrito.forEach((item) => {
     const sub = item.precio * item.cantidad;
-    const txt = doc.splitTextToSize(item.nombre, 87)[0];
-
+    const txt = doc.splitTextToSize(item.nombre, 88)[0];
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(...WHITE);
-    doc.text(txt, CX.desc, y + 6);
-
+    doc.text(txt, CX.desc, iy + 6);
     doc.setTextColor(...GRIS);
-    doc.text(String(item.cantidad), CX.cant, y + 6);
-    doc.text(fmtPDF(item.precio),   CX.prec, y + 6);
-
+    doc.text(String(item.cantidad), CX.cant, iy + 6);
+    doc.text(fmtPDF(item.precio),   CX.prec, iy + 6);
     doc.setTextColor(...LILA);
     doc.setFont("helvetica", "bold");
-    doc.text(fmtPDF(sub), CX.sub, y + 6);
-
+    doc.text(fmtPDF(sub), CX.sub, iy + 6);
+    doc.setFont("helvetica", "normal");
     doc.setDrawColor(...DIV);
     doc.setLineWidth(0.2);
-    doc.line(M + 4, y + filaH, W - M - 4, y + filaH);
-    y += filaH;
+    doc.line(M + PAD, iy + filaH, W - M - PAD, iy + filaH);
+    iy += filaH;
   });
 
-  // Total alineado a la derecha — sin fondo, solo texto
-  y += 4;
+  // Fila TOTAL — texto plano, sin caja
+  iy += 2;
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...GRIS);
-  doc.text("TOTAL", W - M - 46, y);
-  doc.setFontSize(11);
-  doc.setTextColor(...CYAN);
-  doc.text(fmtPDF(total), W - M - 6, y, { align: "right" });
-  y += 14;
+  doc.text("TOTAL", CX.prec, iy + 5);
+  doc.setFontSize(10);
+  doc.setTextColor(...CYAN2);
+  doc.text(fmtPDF(total), W - M - PAD, iy + 6, { align: "right" });
 
-  // ── Obs ───────────────────────────────────────────────────
+  y += c3H + 8;
+
   if (obs) {
     doc.setFontSize(7.5);
     doc.setFont("helvetica", "italic");
@@ -4892,7 +4899,6 @@ async function descargarPDFPresupuesto() {
     y += 6;
   }
 
-  // ── Nota legal ────────────────────────────────────────────
   doc.setFontSize(7);
   doc.setFont("helvetica", "italic");
   doc.setTextColor(...GRIS);
@@ -4900,20 +4906,19 @@ async function descargarPDFPresupuesto() {
   y += 4.5;
   doc.text("Para confirmar la compra, consulta en el local.", M, y);
 
-  // ── Footer ────────────────────────────────────────────────
+  // Footer
   doc.setFillColor(...CARD);
   doc.rect(0, 280, W, 17, "F");
-  doc.setDrawColor(...DIV);
+  doc.setDrawColor(...BORDE);
   doc.setLineWidth(0.3);
   doc.line(0, 280, W, 280);
   doc.setFontSize(7.5);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...GRIS);
   doc.text("Veterinaria Babys · Sistema EficientPlus © 2026", W / 2, 287, { align: "center" });
-  doc.setTextColor(...CYAN);
+  doc.setTextColor(...CYAN2);
   doc.text("Gracias por elegirnos", W / 2, 293, { align: "center" });
 
-  // ── Guardar ───────────────────────────────────────────────
   const ts = new Date().toLocaleDateString("es-AR").replace(/\//g, "-");
   const nomFile = cliente
     ? "presupuesto_" + cliente.replace(/\s+/g, "_").toLowerCase() + "_" + ts
