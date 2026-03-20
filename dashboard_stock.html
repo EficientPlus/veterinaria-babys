@@ -4744,21 +4744,233 @@ async function descargarPDFPresupuesto() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "mm", format: "a4" });
 
-  const W = 210, M = 14;
+  // ── Constantes base ───────────────────────────────────────
+  const W    = 210;
+  const ML   = 14;          // margen izquierdo
+  const MR   = 14;          // margen derecho
+  const CW   = W - ML - MR; // 182mm ancho útil
+  const PAD  = 8;           // padding interno cards
 
   // ── Paleta ────────────────────────────────────────────────
-  const PAGE  = [16,  17,  20 ];   // #101114
-  const CARD  = [27,  28,  34 ];   // #1B1C22
-  const CYAN  = [101, 210, 213];   // #65D2D5
+  const PAGE  = [16, 17, 20];
+  const CARD  = [27, 28, 34];
+  const CYAN  = [101, 210, 213];
   const WHITE = [255, 255, 255];
-  const GRAY  = [156, 163, 175];   // #9CA3AF
-  const DIV   = [42,  43,  54 ];   // #2A2B36
+  const GRAY  = [156, 163, 175];
+  const DIV   = [42, 43, 54];
 
-  const CW   = W - M * 2;   // ancho útil de card
-  const PAD  = 8;            // padding interno cards (≈32px)
-  const ROW  = 8;            // altura fila tabla (≈16px padding)
+  // ── Columnas de la tabla (posiciones absolutas) ───────────
+  // Desc: ML+PAD → ancho 95mm
+  // Cant: col fija 110
+  // Precio: col fija 138
+  // Subtotal: col fija 166 (alineado derecha a W-MR-PAD = 188)
+  const COL_D = ML + PAD;         // 22
+  const COL_Q = 122;               // Cant
+  const COL_P = 146;               // Precio
+  const COL_S = W - MR - PAD;     // 188 — subtotal alineado derecha
 
-  const cliente = document.getElementById("presNombreCliente").value.trim();
+  const datos = {
+    cliente : (document.getElementById("presNombreCliente")?.value || "").trim(),
+    obs     : (document.getElementById("presObs")?.value || "").trim(),
+    fecha   : new Date().toLocaleDateString("es-AR", {day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}),
+    total   : presCarrito.reduce((s,i) => s + i.cantidad * i.precio, 0)
+  };
+
+  let y = 8;
+
+  // ── Fondo página ─────────────────────────────────────────
+  doc.setFillColor(...PAGE);
+  doc.rect(0, 0, W, 297, "F");
+
+  // ════════════════════════════════════════════════════════
+  // CARD 1 — Header
+  // ════════════════════════════════════════════════════════
+  const C1H = 34;
+  doc.setFillColor(...CARD);
+  doc.roundedRect(ML, y, CW, C1H, 3, 3, "F");
+
+  // Título "Veterinaria Babys"
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...CYAN);
+  doc.text("Veterinaria Babys", COL_D, y + 13);
+
+  // Subtítulo
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...GRAY);
+  doc.text("Presupuesto de compra", COL_D, y + 21);
+
+  // Chip "PRESUPUESTO" — 52mm ancho, centrado verticalmente en card
+  const CHIP_W = 52;
+  const CHIP_X = W - MR - PAD - CHIP_W;  // 120
+  const CHIP_Y = y + 10;
+  const CHIP_H = 11;
+  doc.setDrawColor(...CYAN);
+  doc.setLineWidth(0.35);
+  doc.roundedRect(CHIP_X, CHIP_Y, CHIP_W, CHIP_H, 2, 2, "S");
+  doc.setFontSize(7.5);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...CYAN);
+  doc.text("PRESUPUESTO", CHIP_X + CHIP_W/2, CHIP_Y + 7.5, { align: "center" });
+
+  // Fecha debajo del chip
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...GRAY);
+  doc.text(datos.fecha, W - MR - PAD, y + 27, { align: "right" });
+
+  y += C1H + 4;
+
+  // ════════════════════════════════════════════════════════
+  // CARD 2 — Total
+  // ════════════════════════════════════════════════════════
+  const C2H = 30;
+  doc.setFillColor(...CARD);
+  doc.roundedRect(ML, y, CW, C2H, 3, 3, "F");
+
+  // Label espaciado
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...GRAY);
+  doc.setCharSpace(1.5);
+  doc.text("TOTAL PRESUPUESTADO", W/2, y + 10, { align: "center" });
+  doc.setCharSpace(0);
+
+  // Monto grande
+  doc.setFontSize(22);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...CYAN);
+  doc.setCharSpace(-0.3);
+  doc.text(fmtPDF(datos.total), W/2, y + 23, { align: "center" });
+  doc.setCharSpace(0);
+
+  y += C2H + 4;
+
+  // ════════════════════════════════════════════════════════
+  // CARD 3 — Detalle tabla
+  // ════════════════════════════════════════════════════════
+  const ROWA = 10; // altura fila
+  const clienteExtra = datos.cliente ? ROWA + 4 : 0;
+  const C3H = PAD
+    + clienteExtra
+    + ROWA + 2          // header cols
+    + presCarrito.length * (ROWA + 3)
+    + ROWA + 4          // fila total
+    + PAD;
+
+  doc.setFillColor(...CARD);
+  doc.roundedRect(ML, y, CW, C3H, 3, 3, "F");
+
+  let iy = y + PAD;
+
+  // ── Fila cliente ──────────────────────────────────────────
+  if (datos.cliente) {
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...GRAY);
+    doc.setCharSpace(0.8);
+    doc.text("CLIENTE", COL_D, iy + 6);
+    doc.setCharSpace(0);
+    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...WHITE);
+    doc.text(datos.cliente, COL_S, iy + 6, { align: "right" });
+    doc.setDrawColor(...DIV); doc.setLineWidth(0.2);
+    doc.line(COL_D, iy + ROWA, COL_S, iy + ROWA);
+    iy += ROWA + 4;
+  }
+
+  // ── Headers columnas ──────────────────────────────────────
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...GRAY);
+  doc.setCharSpace(0.7);
+  doc.text("DESCRIPCIÓN", COL_D,        iy + 6);
+  doc.text("CANT.",        COL_Q,        iy + 6, { align: "center" });
+  doc.text("PRECIO",       COL_P,        iy + 6, { align: "center" });
+  doc.text("SUBTOTAL",     COL_S,        iy + 6, { align: "right" });
+  doc.setCharSpace(0);
+
+  doc.setDrawColor(...DIV); doc.setLineWidth(0.25);
+  doc.line(COL_D, iy + ROWA, COL_S, iy + ROWA);
+  iy += ROWA + 2;
+
+  // ── Filas productos ───────────────────────────────────────
+  presCarrito.forEach(item => {
+    const sub  = item.precio * item.cantidad;
+    const rowH = ROWA + 3;
+
+    // Descripción — normal, truncada a ~92mm
+    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...WHITE);
+    const desc = doc.splitTextToSize(item.nombre, COL_Q - COL_D - 4)[0];
+    doc.text(desc, COL_D, iy + 6);
+
+    // Cant y Precio — gris, centrado en su columna
+    doc.setTextColor(...GRAY);
+    doc.text(String(item.cantidad),    COL_Q, iy + 6, { align: "center" });
+    doc.text(fmtPDF(item.precio),      COL_P, iy + 6, { align: "center" });
+
+    // Subtotal — blanco bold, alineado derecha
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...WHITE);
+    doc.text(fmtPDF(sub),              COL_S, iy + 6, { align: "right" });
+    doc.setFont("helvetica", "normal");
+
+    doc.setDrawColor(...DIV); doc.setLineWidth(0.15);
+    doc.line(COL_D, iy + rowH, COL_S, iy + rowH);
+    iy += rowH;
+  });
+
+  // ── Fila TOTAL ────────────────────────────────────────────
+  iy += 4;
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(...GRAY);
+  doc.setCharSpace(0.6);
+  doc.text("TOTAL", COL_P, iy + 5, { align: "center" });
+  doc.setCharSpace(0);
+  doc.setFontSize(11);
+  doc.setTextColor(...CYAN);
+  doc.text(fmtPDF(datos.total), COL_S, iy + 6, { align: "right" });
+
+  y += C3H + 8;
+
+  // ── Obs ───────────────────────────────────────────────────
+  if (datos.obs) {
+    doc.setFontSize(7.5); doc.setFont("helvetica", "italic");
+    doc.setTextColor(...GRAY);
+    doc.text("Obs: " + datos.obs, ML, y);
+    y += 6;
+  }
+
+  // ── Nota legal ────────────────────────────────────────────
+  doc.setFontSize(7); doc.setFont("helvetica", "italic");
+  doc.setTextColor(...GRAY);
+  doc.text("Presupuesto no valido como factura legal. Los precios pueden variar.", ML, y);
+  y += 4.5;
+  doc.text("Para confirmar la compra, consulta en el local.", ML, y);
+
+  // ── Footer ────────────────────────────────────────────────
+  doc.setFillColor(...CARD);
+  doc.rect(0, 280, W, 17, "F");
+  doc.setDrawColor(...DIV); doc.setLineWidth(0.3);
+  doc.line(0, 280, W, 280);
+  doc.setFontSize(7.5); doc.setFont("helvetica", "normal");
+  doc.setTextColor(...GRAY);
+  doc.text("Veterinaria Babys · Sistema EficientPlus © 2026", W/2, 287, { align: "center" });
+  doc.setTextColor(...CYAN);
+  doc.text("Gracias por elegirnos", W/2, 293, { align: "center" });
+
+  // ── Guardar ───────────────────────────────────────────────
+  const ts = new Date().toLocaleDateString("es-AR").replace(/\//g, "-");
+  doc.save((datos.cliente
+    ? "presupuesto_" + datos.cliente.replace(/\s+/g, "_").toLowerCase() + "_" + ts
+    : "presupuesto_" + ts) + ".pdf");
+}
+
   const obs     = document.getElementById("presObs").value.trim();
   const fecha   = new Date().toLocaleDateString("es-AR", {
     day:"2-digit", month:"2-digit", year:"numeric",
@@ -4936,10 +5148,10 @@ async function descargarPDFPresupuesto() {
   doc.text("Gracias por elegirnos", W/2, 293, { align:"center" });
 
   // ── Guardar ───────────────────────────────────────────────
-  const ts = new Date().toLocaleDateString("es-AR").replace(/\//g,"-");
-  doc.save((cliente
-    ? "presupuesto_"+cliente.replace(/\s+/g,"_").toLowerCase()+"_"+ts
-    : "presupuesto_"+ts)+".pdf");
+  const ts = new Date().toLocaleDateString("es-AR").replace(/\//g, "-");
+  doc.save((datos.cliente
+    ? "presupuesto_" + datos.cliente.replace(/\s+/g, "_").toLowerCase() + "_" + ts
+    : "presupuesto_" + ts) + ".pdf");
 }
 
 
