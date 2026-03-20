@@ -4801,18 +4801,18 @@ async function descargarPDFPresupuesto() {
   doc.setTextColor(...GRAY);
   doc.text("Presupuesto de compra", COL_D, y + 21);
 
-  // Chip "PRESUPUESTO" — 52mm ancho, centrado verticalmente en card
-  const CHIP_W = 52;
-  const CHIP_X = W - MR - PAD - CHIP_W;  // 120
-  const CHIP_Y = y + 10;
-  const CHIP_H = 11;
+  // Chip "PRESUPUESTO" — letra grande, bien proporcionado
+  const CHIP_W = 60;
+  const CHIP_X = W - MR - PAD - CHIP_W;
+  const CHIP_Y = y + 8;
+  const CHIP_H = 14;
   doc.setDrawColor(...CYAN);
   doc.setLineWidth(0.35);
   doc.roundedRect(CHIP_X, CHIP_Y, CHIP_W, CHIP_H, 2, 2, "S");
-  doc.setFontSize(7.5);
+  doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...CYAN);
-  doc.text("PRESUPUESTO", CHIP_X + CHIP_W/2, CHIP_Y + 7.5, { align: "center" });
+  doc.text("PRESUPUESTO", CHIP_X + CHIP_W/2, CHIP_Y + 9.5, { align: "center" });
 
   // Fecha debajo del chip
   doc.setFontSize(7);
@@ -4829,21 +4829,17 @@ async function descargarPDFPresupuesto() {
   doc.setFillColor(...CARD);
   doc.roundedRect(ML, y, CW, C2H, 3, 3, "F");
 
-  // Label espaciado
-  doc.setFontSize(7);
+  // Label — SIN setCharSpace para que el centrado funcione
+  doc.setFontSize(7.5);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...GRAY);
-  doc.setCharSpace(1.5);
-  doc.text("TOTAL PRESUPUESTADO", W/2, y + 10, { align: "center" });
-  doc.setCharSpace(0);
+  doc.text("TOTAL  PRESUPUESTADO", W/2, y + 10, { align: "center" });
 
   // Monto grande
   doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...CYAN);
-  doc.setCharSpace(-0.3);
   doc.text(fmtPDF(datos.total), W/2, y + 23, { align: "center" });
-  doc.setCharSpace(0);
 
   y += C2H + 4;
 
@@ -4866,12 +4862,10 @@ async function descargarPDFPresupuesto() {
 
   // ── Fila cliente ──────────────────────────────────────────
   if (datos.cliente) {
-    doc.setFontSize(7);
+    doc.setFontSize(7.5);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...GRAY);
-    doc.setCharSpace(0.8);
     doc.text("CLIENTE", COL_D, iy + 6);
-    doc.setCharSpace(0);
     doc.setFontSize(8.5);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(...WHITE);
@@ -4882,15 +4876,13 @@ async function descargarPDFPresupuesto() {
   }
 
   // ── Headers columnas ──────────────────────────────────────
-  doc.setFontSize(7);
+  doc.setFontSize(7.5);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...GRAY);
-  doc.setCharSpace(0.7);
-  doc.text("DESCRIPCIÓN", COL_D,        iy + 6);
-  doc.text("CANT.",        COL_Q,        iy + 6, { align: "center" });
-  doc.text("PRECIO",       COL_P,        iy + 6, { align: "center" });
-  doc.text("SUBTOTAL",     COL_S,        iy + 6, { align: "right" });
-  doc.setCharSpace(0);
+  doc.text("DESCRIPCIÓN", COL_D,   iy + 6);
+  doc.text("CANT.",       COL_Q,   iy + 6, { align: "center" });
+  doc.text("PRECIO",      COL_P,   iy + 6, { align: "center" });
+  doc.text("SUBTOTAL",    COL_S,   iy + 6, { align: "right" });
 
   doc.setDrawColor(...DIV); doc.setLineWidth(0.25);
   doc.line(COL_D, iy + ROWA, COL_S, iy + ROWA);
@@ -4926,12 +4918,10 @@ async function descargarPDFPresupuesto() {
 
   // ── Fila TOTAL ────────────────────────────────────────────
   iy += 4;
-  doc.setFontSize(7);
+  doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...GRAY);
-  doc.setCharSpace(0.6);
   doc.text("TOTAL", COL_P, iy + 5, { align: "center" });
-  doc.setCharSpace(0);
   doc.setFontSize(11);
   doc.setTextColor(...CYAN);
   doc.text(fmtPDF(datos.total), COL_S, iy + 6, { align: "right" });
