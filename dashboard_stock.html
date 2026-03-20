@@ -4809,7 +4809,7 @@ async function descargarPDFPresupuesto() {
   doc.setDrawColor(...CYAN);
   doc.setLineWidth(0.35);
   doc.roundedRect(CHIP_X, CHIP_Y, CHIP_W, CHIP_H, 2, 2, "S");
-  doc.setFontSize(10);
+  doc.setFontSize(12);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...CYAN);
   doc.text("PRESUPUESTO", CHIP_X + CHIP_W/2, CHIP_Y + 9.5, { align: "center" });
@@ -4893,14 +4893,15 @@ async function descargarPDFPresupuesto() {
     const sub  = item.precio * item.cantidad;
     const rowH = ROWA + 3;
 
-    // Descripción — normal, truncada a ~92mm
-    doc.setFontSize(8.5);
+    // Descripción — normal, truncada
+    doc.setFontSize(9.5);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(...WHITE);
     const desc = doc.splitTextToSize(item.nombre, COL_Q - COL_D - 4)[0];
     doc.text(desc, COL_D, iy + 6);
 
     // Cant y Precio — gris, centrado en su columna
+    doc.setFontSize(9.5);
     doc.setTextColor(...GRAY);
     doc.text(String(item.cantidad),    COL_Q, iy + 6, { align: "center" });
     doc.text(fmtPDF(item.precio),      COL_P, iy + 6, { align: "center" });
