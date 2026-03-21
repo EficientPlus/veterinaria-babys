@@ -2875,16 +2875,9 @@ function abrirModal() {
   });
 
   // Reset cuotas/descuento
-  const cuotasNumEl = document.getElementById("cuotasNum");
-  const cuotasRecEl = document.getElementById("cuotasRecargo");
-  const cuotasPrev  = document.getElementById("cuotasPreview");
-  const descPctEl   = document.getElementById("descuentoPct");
-  const descPrev    = document.getElementById("descuentoPreview");
-  if (cuotasNumEl) cuotasNumEl.value = "1";
-  if (cuotasRecEl) cuotasRecEl.value = "0";
-  if (cuotasPrev)  cuotasPrev.style.display  = "none";
-  if (descPctEl)   descPctEl.value  = "0";
-  if (descPrev)    descPrev.style.display   = "none";
+  document.getElementById("cuotasNum")?.value && (document.getElementById("cuotasNum").value = "1");
+  document.getElementById("cuotasRecargo")?.value && (document.getElementById("cuotasRecargo").value = "0");
+  document.getElementById("descuentoPct")?.value && (document.getElementById("descuentoPct").value = "0");
   const secCD = document.getElementById("seccion-cuotas-descuento");
   if (secCD) secCD.style.display = "none";
 
