@@ -1999,6 +1999,36 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
                 🏦 Transf.
               </button>
             </div>
+
+            <!-- Cuotas -->
+            <div style="margin-top:10px;padding:12px 14px;border:1px solid var(--border);border-radius:9px;background:rgba(99,102,241,0.04);">
+              <div style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;">
+                Cuotas <span style="color:#52525b;font-weight:400;text-transform:none;">(opcional — dejar en 1 si es contado)</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;">
+                <div>
+                  <div style="font-size:11px;color:#71717a;margin-bottom:4px;">Cantidad de cuotas</div>
+                  <input type="number" id="cuotasNum" min="1" step="1" value="1"
+                    oninput="actualizarCuotas()"
+                    style="width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:8px;
+                    background:var(--card);color:var(--text);font-size:14px;font-weight:700;
+                    font-family:'Inter',sans-serif;outline:none;text-align:center;">
+                </div>
+                <div>
+                  <div style="font-size:11px;color:#71717a;margin-bottom:4px;">Recargo % <span style="color:#52525b;">(0 = sin interés)</span></div>
+                  <input type="number" id="cuotasRecargo" min="0" step="0.1" value="0"
+                    oninput="actualizarCuotas()"
+                    style="width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:8px;
+                    background:var(--card);color:var(--text);font-size:14px;font-weight:700;
+                    font-family:'Inter',sans-serif;outline:none;text-align:center;">
+                </div>
+              </div>
+              <!-- Preview cuotas -->
+              <div id="cuotasPreview" style="display:none;padding:8px 12px;border-radius:7px;
+                background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);
+                font-size:13px;color:#a78bfa;font-weight:600;text-align:center;">
+              </div>
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label" for="movResponsable">Responsable</label>
@@ -2781,6 +2811,13 @@ function abrirModal() {
   document.getElementById("movResponsable").value = "";
   document.getElementById("movObs").value = "";
   document.getElementById("productDropdown").classList.remove("open");
+  // Reset cuotas
+  const cuotasNumEl = document.getElementById("cuotasNum");
+  const cuotasRecEl = document.getElementById("cuotasRecargo");
+  const cuotasPrev  = document.getElementById("cuotasPreview");
+  if (cuotasNumEl) cuotasNumEl.value = "1";
+  if (cuotasRecEl) cuotasRecEl.value = "0";
+  if (cuotasPrev)  cuotasPrev.style.display = "none";
   renderCarrito();
   document.getElementById("modalForm").style.display = "";
   document.getElementById("modalSuccess").classList.remove("show");
@@ -2837,11 +2874,54 @@ function seleccionarMedio(btn) {
   btn.style.background  = "rgba(99,102,241,0.12)";
   btn.style.color       = "#a78bfa";
   btn.classList.add("active");
+  actualizarCuotas();
 }
 
 function getMedioPago() {
-  const active = document.querySelector(".medio-pill.active");
-  return active ? active.dataset.medio : "Efectivo";
+  const active   = document.querySelector(".medio-pill.active");
+  const base     = active ? active.dataset.medio : "Efectivo";
+  const cuotas   = parseInt(document.getElementById("cuotasNum")?.value) || 1;
+  const recargo  = parseFloat(document.getElementById("cuotasRecargo")?.value) || 0;
+  if (cuotas <= 1 && recargo === 0) return base;
+  const recargoStr = recargo > 0 ? ` +${recargo}%` : " sin interés";
+  return `${base} — ${cuotas} cuotas${recargoStr}`;
+}
+
+// Devuelve el factor multiplicador según el recargo (ej: 15% → 1.15)
+function getCuotasFactor() {
+  const recargo = parseFloat(document.getElementById("cuotasRecargo")?.value) || 0;
+  return 1 + (recargo / 100);
+}
+
+function actualizarCuotas() {
+  const cuotas  = parseInt(document.getElementById("cuotasNum")?.value)      || 1;
+  const recargo = parseFloat(document.getElementById("cuotasRecargo")?.value) || 0;
+  const preview = document.getElementById("cuotasPreview");
+  if (!preview) return;
+
+  // Calcular total actual del carrito sumando los precios de venta ingresados
+  let totalBase = 0;
+  carrito.forEach((item, i) => {
+    const pv = parseFloat(document.getElementById(`pv-venta-${i}`)?.value) || 0;
+    totalBase += pv;
+  });
+
+  if (cuotas <= 1 && recargo === 0) {
+    preview.style.display = "none";
+    return;
+  }
+
+  const factor       = 1 + (recargo / 100);
+  const totalConRec  = Math.round(totalBase * factor);
+  const valorCuota   = totalBase > 0 ? Math.round(totalConRec / cuotas) : 0;
+  const recargoStr   = recargo > 0 ? ` (recargo ${recargo}%)` : " sin interés";
+
+  preview.style.display = "block";
+  if (totalBase > 0) {
+    preview.textContent = `${cuotas} cuota${cuotas!==1?"s":""} de $${valorCuota.toLocaleString("es-AR")}${recargoStr} — Total: $${totalConRec.toLocaleString("es-AR")}`;
+  } else {
+    preview.textContent = `${cuotas} cuota${cuotas!==1?"s":""}${recargoStr}`;
+  }
 }
 
 function seleccionarTipo(tipo, btn) {
@@ -2990,7 +3070,9 @@ async function enviarMovimiento() {
       if (esVenta) {
         // Enviar como venta con FormData (igual que movimiento — evita CORS preflight)
         const costoUnit   = parseFloat(document.getElementById(`pv-costo-${idx}`)?.value)  || 0;
-        const precioVenta = parseFloat(document.getElementById(`pv-venta-${idx}`)?.value)  || 0;
+        const precioBase  = parseFloat(document.getElementById(`pv-venta-${idx}`)?.value)  || 0;
+        const factor      = getCuotasFactor();
+        const precioVenta = Math.round(precioBase * factor * 100) / 100;
         const formData = new FormData();
         formData.append("accion",          "venta");
         formData.append("producto",        item.producto);
@@ -4616,7 +4698,8 @@ function actualizarTablaPrecios() {
       <td style="padding:3px 4px;">
         <input type="number" id="pv-venta-${idx}"
           value="${sug.venta ? Math.round(sug.venta * item.cantidad) : ""}" placeholder="0" step="0.01" min="0"
-          style="width:88px;padding:5px 7px;border-radius:6px;border:1px solid #f472b6;background:var(--card);color:var(--text);font-size:12.5px;font-family:'Inter',sans-serif;">
+          style="width:88px;padding:5px 7px;border-radius:6px;border:1px solid #f472b6;background:var(--card);color:var(--text);font-size:12.5px;font-family:'Inter',sans-serif;"
+          oninput="actualizarCuotas()">
       </td>
     </tr>`;
   }).join("");
