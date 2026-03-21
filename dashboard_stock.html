@@ -992,6 +992,11 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
       <span>Relevamiento</span>
     </button>
 
+    <button class="nav-item" onclick="switchTab('presupuestos', this)">
+      <span class="nav-icon">🧾</span>
+      <span>Presupuestos</span>
+    </button>
+
   </nav>
 
   <!-- Footer -->
@@ -1389,6 +1394,105 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
               <div id="relHistorial" style="padding:14px 16px;color:var(--text-3);font-size:13px;font-style:italic;">
                 Todavía no relevaste ningún producto.
               </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- TAB: PRESUPUESTOS -->
+        <div id="tab-presupuestos" class="tab-content">
+          <div style="max-width:720px;margin:0 auto;">
+
+            <div class="kpi-card visible" style="border-top-color:#06b6d4;margin-bottom:20px;padding:20px 24px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <div class="kpi-label">Presupuestos</div>
+                  <div style="font-size:13px;color:var(--text-2);margin-top:4px;">Armá un presupuesto con múltiples productos — no descuenta stock</div>
+                </div>
+                <div style="font-size:36px;">🧾</div>
+              </div>
+            </div>
+
+            <div class="table-card visible" style="padding:24px;margin-bottom:16px;">
+
+              <div style="margin-bottom:16px;">
+                <div class="form-label" style="margin-bottom:6px;">Cliente <span style="color:var(--text-3);font-weight:400;text-transform:none;">(opcional)</span></div>
+                <input type="text" id="presNombreCliente" placeholder="Ej: Juan Pérez"
+                  style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;
+                  background:var(--card);color:var(--text);font-size:13.5px;font-family:'Inter',sans-serif;outline:none;">
+              </div>
+
+              <div class="form-label" style="margin-bottom:6px;">Buscar producto del stock</div>
+              <div style="position:relative;margin-bottom:10px;">
+                <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none;">🔍</span>
+                <input type="text" id="presSearch" placeholder="Escribí nombre del producto..."
+                  oninput="filtrarPresProductos()" onfocus="abrirPresDropdown()" autocomplete="off"
+                  style="width:100%;padding:9px 12px 9px 34px;border:1px solid var(--border);border-radius:8px;
+                  background:var(--card);color:var(--text);font-size:13.5px;font-family:'Inter',sans-serif;outline:none;">
+                <div id="presDropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;
+                  background:var(--card);border:1px solid var(--border);border-radius:8px;
+                  max-height:200px;overflow-y:auto;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,0.4);"></div>
+              </div>
+
+              <div id="presProductoLabel" style="font-size:13px;color:var(--text-3);font-style:italic;margin-bottom:10px;min-height:18px;">
+                Ningún producto seleccionado
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:14px;">
+                <div>
+                  <div class="form-label" style="margin-bottom:5px;">Cantidad</div>
+                  <input type="number" id="presCantidad" placeholder="1" min="1" step="1"
+                    style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;
+                    background:var(--card);color:var(--text);font-size:13.5px;font-family:'Inter',sans-serif;outline:none;">
+                </div>
+                <div>
+                  <div class="form-label" style="margin-bottom:5px;">Precio unitario $</div>
+                  <input type="number" id="presPrecioUnit" placeholder="0" min="0"
+                    style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;
+                    background:var(--card);color:var(--text);font-size:13.5px;font-family:'Inter',sans-serif;outline:none;">
+                </div>
+                <button onclick="agregarItemPresupuesto()"
+                  style="padding:9px 16px;background:var(--vi-grad);color:#fff;border:none;border-radius:8px;
+                  font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;">
+                  + Agregar
+                </button>
+              </div>
+
+              <div id="presCarritoWrap" style="display:none;border:1px solid var(--border);border-radius:9px;overflow:hidden;margin-bottom:16px;">
+                <div style="background:var(--surface);padding:7px 13px;font-size:10.5px;font-weight:700;
+                  color:var(--text-3);text-transform:uppercase;letter-spacing:0.6px;
+                  display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);">
+                  <span>Productos del presupuesto</span>
+                  <span id="presCarritoCount" style="color:#06b6d4;font-weight:800;">0</span>
+                </div>
+                <div id="presCarritoItems"></div>
+                <div style="padding:12px 14px;border-top:1px solid var(--border);background:rgba(6,182,212,0.04);
+                  display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:13px;font-weight:600;color:var(--text-2);">TOTAL PRESUPUESTO</span>
+                  <span id="presTotalLabel" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;color:#06b6d4;">$0</span>
+                </div>
+              </div>
+
+              <div style="margin-bottom:16px;">
+                <div class="form-label" style="margin-bottom:6px;">Observaciones <span style="color:var(--text-3);font-weight:400;text-transform:none;">(opcional)</span></div>
+                <input type="text" id="presObs" placeholder="Ej: válido por 48hs, incluye colocación..."
+                  style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;
+                  background:var(--card);color:var(--text);font-size:13.5px;font-family:'Inter',sans-serif;outline:none;">
+              </div>
+
+              <div style="display:flex;gap:10px;">
+                <button onclick="limpiarPresupuesto()"
+                  style="flex:1;padding:12px;background:transparent;color:var(--text-2);border:1px solid var(--border);
+                  border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">
+                  🗑 Limpiar
+                </button>
+                <button onclick="generarPDFPresupuesto()"
+                  style="flex:2;padding:12px;background:linear-gradient(135deg,#0891b2,#06b6d4);color:#fff;
+                  border:none;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer;
+                  font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:7px;">
+                  🖨 Generar PDF
+                </button>
+              </div>
+
             </div>
 
           </div>
@@ -4374,6 +4478,213 @@ function actualizarRelHistorial() {
 }
 
 init();
+</script>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+//  MÓDULO PRESUPUESTOS
+// ════════════════════════════════════════════════════════════════════════════
+
+let presCarrito = [];
+let presProductoSeleccionado = null;
+
+function abrirPresDropdown() { filtrarPresProductos(); }
+
+function filtrarPresProductos() {
+  const q  = (document.getElementById("presSearch")?.value || "").toLowerCase().trim();
+  const dd = document.getElementById("presDropdown");
+  if (!dd) return;
+
+  const fuente = stockDataGlobal.length > 0 ? stockDataGlobal : [];
+  const filtrados = q === ""
+    ? fuente.slice(0, 40)
+    : fuente.filter(p => p.nombre.toLowerCase().includes(q)).slice(0, 40);
+
+  if (!filtrados.length) {
+    dd.style.display = "block";
+    dd.innerHTML = `<div style="padding:10px 14px;color:var(--text-3);font-size:13px;">No se encontraron productos en stock</div>`;
+    return;
+  }
+  dd.style.display = "block";
+  dd.innerHTML = filtrados.map((p, i) => `
+    <div class="pres-dd-item" data-idx="${i}"
+      style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);"
+      onmouseover="this.style.background='var(--card-hover)'"
+      onmouseout="this.style.background='transparent'">
+      <div style="font-size:13.5px;font-weight:600;color:var(--text);">${p.nombre}</div>
+      <div style="font-size:11.5px;color:var(--text-3);margin-top:2px;">${p.categoria || ""}${p.precio > 0 ? " — Costo: $" + p.precio.toLocaleString("es-AR") : ""}</div>
+    </div>`
+  ).join("");
+  dd._filtrados = filtrados;
+}
+
+document.addEventListener("click", e => {
+  const search = document.getElementById("presSearch");
+  const dd     = document.getElementById("presDropdown");
+  if (!dd) return;
+  const item = e.target.closest(".pres-dd-item");
+  if (item && dd.contains(item)) {
+    const idx = parseInt(item.dataset.idx);
+    const p   = dd._filtrados?.[idx];
+    if (p) elegirPresProducto(p);
+    return;
+  }
+  if (search && !search.contains(e.target) && !dd.contains(e.target)) {
+    dd.style.display = "none";
+  }
+});
+
+function elegirPresProducto(p) {
+  presProductoSeleccionado = p;
+  const dd = document.getElementById("presDropdown");
+  if (dd) { dd.style.display = "none"; dd._filtrados = null; }
+  document.getElementById("presSearch").value = "";
+  document.getElementById("presProductoLabel").innerHTML =
+    `<strong style="color:var(--text);font-size:14px;">✅ ${p.nombre}</strong>
+     <span style="color:var(--text-3);font-size:12px;margin-left:8px;">${p.categoria || ""}</span>`;
+  const match = preciosDataGlobal.find(pr =>
+    pr.desc.toLowerCase().includes(p.nombre.toLowerCase().split(" ").slice(0,3).join(" ").toLowerCase())
+  );
+  const precioSug = match?.venta || match?.conIVA || p.precio || 0;
+  if (precioSug > 0) document.getElementById("presPrecioUnit").value = precioSug;
+  document.getElementById("presCantidad").value = 1;
+  document.getElementById("presCantidad").focus();
+}
+
+function agregarItemPresupuesto() {
+  if (!presProductoSeleccionado) { alert("Seleccioná un producto primero."); return; }
+  const cant   = parseFloat(document.getElementById("presCantidad").value) || 1;
+  const precio = parseFloat(document.getElementById("presPrecioUnit").value) || 0;
+  if (!precio) { alert("Ingresá el precio unitario."); return; }
+  const existe = presCarrito.find(i => i.nombre === presProductoSeleccionado.nombre);
+  if (existe) { existe.cantidad = cant; existe.precio = precio; }
+  else presCarrito.push({ nombre: presProductoSeleccionado.nombre, categoria: presProductoSeleccionado.categoria || "", cantidad: cant, precio });
+  presProductoSeleccionado = null;
+  document.getElementById("presProductoLabel").innerHTML = '<span style="color:var(--text-3);font-style:italic;">Ningún producto seleccionado</span>';
+  document.getElementById("presCantidad").value  = "";
+  document.getElementById("presPrecioUnit").value = "";
+  renderPresCarrito();
+  document.getElementById("presSearch").focus();
+}
+
+function quitarPresItem(idx) { presCarrito.splice(idx, 1); renderPresCarrito(); }
+
+function renderPresCarrito() {
+  const wrap  = document.getElementById("presCarritoWrap");
+  const items = document.getElementById("presCarritoItems");
+  const count = document.getElementById("presCarritoCount");
+  const total = presCarrito.reduce((s, i) => s + i.cantidad * i.precio, 0);
+  count.textContent = presCarrito.length;
+  document.getElementById("presTotalLabel").textContent =
+    "$" + total.toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  if (!presCarrito.length) { wrap.style.display = "none"; items.innerHTML = ""; return; }
+  wrap.style.display = "block";
+  items.innerHTML = presCarrito.map((item, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;
+      padding:9px 13px;border-top:1px solid var(--border);font-size:13.5px;gap:8px;"
+      onmouseover="this.style.background='var(--card-hover)'" onmouseout="this.style.background='transparent'">
+      <div style="flex:1;">
+        <div style="font-weight:600;color:var(--text);">${item.nombre}</div>
+        <div style="font-size:11.5px;color:var(--text-3);">$${item.precio.toLocaleString("es-AR")} × ${item.cantidad} = $${(item.precio*item.cantidad).toLocaleString("es-AR")}</div>
+      </div>
+      <button onclick="quitarPresItem(${i})"
+        style="width:24px;height:24px;background:transparent;color:#fca5a5;border:1px solid #7f1d1d;
+        border-radius:5px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>`
+  ).join("");
+}
+
+function limpiarPresupuesto() {
+  presCarrito = []; presProductoSeleccionado = null;
+  document.getElementById("presNombreCliente").value = "";
+  document.getElementById("presObs").value           = "";
+  document.getElementById("presSearch").value        = "";
+  document.getElementById("presCantidad").value      = "";
+  document.getElementById("presPrecioUnit").value    = "";
+  document.getElementById("presProductoLabel").innerHTML = '<span style="color:var(--text-3);font-style:italic;">Ningún producto seleccionado</span>';
+  renderPresCarrito();
+}
+
+async function generarPDFPresupuesto() {
+  if (!presCarrito.length) { alert("Agregá al menos un producto al presupuesto."); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const W=210, MARGEN=18;
+  const CYAN=[6,182,212], OSCURO=[20,20,35], MEDIO=[100,110,130], CLARO=[240,244,250];
+  let y=0;
+
+  doc.setFillColor(...CYAN); doc.rect(0,0,W,36,"F");
+  doc.setTextColor(255,255,255); doc.setFontSize(19); doc.setFont("helvetica","bold");
+  doc.text("Veterinaria Babys", MARGEN, 16);
+  doc.setFontSize(8.5); doc.setFont("helvetica","normal");
+  doc.text("Sistema de gestión EficientPlus", MARGEN, 23);
+  doc.setFillColor(255,255,255); doc.roundedRect(W-MARGEN-42,8,42,10,2,2,"F");
+  doc.setTextColor(...CYAN); doc.setFontSize(9); doc.setFont("helvetica","bold");
+  doc.text("PRESUPUESTO", W-MARGEN-21, 14.5, { align:"center" });
+  doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont("helvetica","normal");
+  const fecha = new Date().toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric"});
+  doc.text("Fecha: "+fecha, W-MARGEN, 26, { align:"right" });
+  y=46;
+
+  doc.setTextColor(...OSCURO);
+  const cliente = document.getElementById("presNombreCliente").value.trim();
+  const obs     = document.getElementById("presObs").value.trim();
+  if (cliente) {
+    doc.setFontSize(9); doc.setFont("helvetica","bold"); doc.text("Cliente:", MARGEN, y);
+    doc.setFont("helvetica","normal"); doc.text(cliente, MARGEN+22, y); y+=7;
+  }
+  if (obs) {
+    doc.setFontSize(8.5); doc.setFont("helvetica","italic"); doc.setTextColor(...MEDIO);
+    doc.text("Obs: "+obs, MARGEN, y); doc.setFont("helvetica","normal"); y+=7;
+  }
+  y+=2;
+
+  const COL = { desc:{x:MARGEN,w:88}, cant:{x:MARGEN+90,w:18}, precio:{x:MARGEN+110,w:32}, subtotal:{x:MARGEN+144,w:36} };
+  doc.setFillColor(...CYAN); doc.rect(MARGEN,y,W-MARGEN*2,8,"F");
+  doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont("helvetica","bold");
+  doc.text("Descripción", COL.desc.x+2,    y+5.5);
+  doc.text("Cant.",       COL.cant.x+2,    y+5.5);
+  doc.text("Precio unit.",COL.precio.x+2,  y+5.5);
+  doc.text("Subtotal",    COL.subtotal.x+2,y+5.5);
+  y+=8;
+
+  let total=0;
+  presCarrito.forEach((item,i) => {
+    const subtotal=item.precio*item.cantidad; total+=subtotal;
+    if (i%2===0) { doc.setFillColor(...CLARO); doc.rect(MARGEN,y,W-MARGEN*2,8,"F"); }
+    doc.setTextColor(...OSCURO); doc.setFontSize(8); doc.setFont("helvetica","normal");
+    doc.text(doc.splitTextToSize(item.nombre,COL.desc.w-3)[0], COL.desc.x+2,    y+5.5);
+    doc.text(String(item.cantidad),                             COL.cant.x+2,    y+5.5);
+    doc.text(fmtPDF(item.precio),                              COL.precio.x+2,  y+5.5);
+    doc.text(fmtPDF(subtotal),                                 COL.subtotal.x+2,y+5.5);
+    y+=8;
+  });
+
+  doc.setDrawColor(...CYAN); doc.setLineWidth(0.4); doc.line(MARGEN,y,W-MARGEN,y); y+=6;
+  const totX=W-MARGEN-62;
+  doc.setFillColor(...CYAN); doc.roundedRect(totX-4,y-2,W-MARGEN-totX+4,12,2,2,"F");
+  doc.setTextColor(255,255,255); doc.setFontSize(11); doc.setFont("helvetica","bold");
+  doc.text("TOTAL:", totX, y+6.5);
+  doc.text(fmtPDF(total), W-MARGEN-2, y+6.5, { align:"right" });
+  y+=18;
+
+  doc.setFontSize(8); doc.setFont("helvetica","italic"); doc.setTextColor(...MEDIO);
+  doc.text("Este presupuesto no es válido como factura legal. Los precios pueden variar.", MARGEN, y); y+=5;
+  doc.text("Para confirmar la compra, consultá en el local.", MARGEN, y);
+
+  doc.setFillColor(...CLARO); doc.rect(0,280,W,17,"F");
+  doc.setFontSize(7.5); doc.setTextColor(...MEDIO); doc.setFont("helvetica","normal");
+  doc.text("Veterinaria Babys · Sistema EficientPlus", W/2, 287, { align:"center" });
+  doc.text("Gracias por elegirnos 🐾", W/2, 293, { align:"center" });
+
+  const ts=new Date().toLocaleDateString("es-AR").replace(/\//g,"-");
+  const nombre=cliente?"presupuesto_"+cliente.replace(/\s+/g,"_").toLowerCase()+"_"+ts:"presupuesto_"+ts;
+  doc.save(nombre+".pdf");
+}
+
+function fmtPDF(v) {
+  return "$" + Number(v).toLocaleString("es-AR", { minimumFractionDigits:0, maximumFractionDigits:0 });
+}
 </script>
 </body>
 </html>
