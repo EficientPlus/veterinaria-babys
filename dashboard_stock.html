@@ -1605,6 +1605,21 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
     <div style="padding:18px 22px;display:flex;flex-direction:column;gap:13px;">
       <input type="hidden" id="ajusteProducto">
 
+      <!-- Código de barras -->
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">
+          Código de barras <span style="color:#52525b;font-weight:400;text-transform:none;">(escaneá o escribí)</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="ajusteCodigo" placeholder="Ej: 7790001234567"
+            style="flex:1;padding:9px 13px;border:1px solid #2d2a40;border-radius:9px;
+            font-size:13.5px;color:#fff;background:#13111c;outline:none;font-family:'Inter',sans-serif;
+            letter-spacing:1px;">
+          <span style="font-size:18px;opacity:0.5;">📷</span>
+        </div>
+        <div id="ajusteCodigoStatus" style="font-size:11.5px;margin-top:4px;min-height:14px;"></div>
+      </div>
+
       <div>
         <div style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">
           Cantidad real en depósito <span style="color:#ef4444;">*</span>
@@ -1687,7 +1702,21 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
             <div class="form-label">Agregar producto</div>
             <div style="display:flex;flex-direction:column;gap:8px;">
 
-              <!-- Buscador -->
+              <!-- Input escáner de código de barras -->
+              <div style="display:flex;align-items:center;gap:8px;
+                background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.25);
+                border-radius:9px;padding:7px 12px;">
+                <span style="font-size:14px;">📷</span>
+                <input type="text" id="ventaScannerInput"
+                  placeholder="Escaneá el código de barras del producto..."
+                  onkeydown="onVentaScannerKey(event)"
+                  autocomplete="off"
+                  style="flex:1;background:transparent;border:none;outline:none;
+                  color:#86efac;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;">
+                <span id="ventaScannerStatus" style="font-size:11.5px;color:#6b7280;white-space:nowrap;">o buscá abajo</span>
+              </div>
+
+              <!-- Buscador por nombre -->
               <div class="product-search-wrap" id="productSearchWrap">
                 <span class="product-search-icon">🔍</span>
                 <input type="text" class="product-search-input" id="productSearch"
@@ -4589,7 +4618,7 @@ function actualizarRelHistorial() {
     </div>`).join("");
 }
 
-// ── MODO ESCÁNER ──────────────────────────────────────────────────────────
+// ── MODO ESCÁNER (tabla Stock) ─────────────────────────────────────────────
 let scannerActivo = false;
 
 function toggleScanner() {
@@ -4598,14 +4627,10 @@ function toggleScanner() {
   const btn  = document.getElementById("btnScanner");
   const inp  = document.getElementById("scannerInput");
   if (scannerActivo) {
-    wrap.style.display = "flex";
-    btn.style.display  = "none";
-    inp.value = "";
-    inp.focus();
+    wrap.style.display = "flex"; btn.style.display = "none";
+    inp.value = ""; inp.focus();
   } else {
-    wrap.style.display = "none";
-    btn.style.display  = "flex";
-    inp.value = "";
+    wrap.style.display = "none"; btn.style.display = "flex"; inp.value = "";
   }
 }
 
@@ -4614,46 +4639,62 @@ function onScannerKey(e) {
   const codigo = document.getElementById("scannerInput").value.trim();
   document.getElementById("scannerInput").value = "";
   if (!codigo) return;
-
-  // Buscar en stockDataGlobal por código exacto
   const producto = stockDataGlobal.find(p => p.codigo && p.codigo === codigo);
-
   if (producto) {
-    // Encontrado → abrir modal de venta con el producto pre-cargado
     abrirModal();
-    setTimeout(() => {
-      // Simular selección del producto en el buscador del modal
-      const found = productosModal.find(p => p.nombre === producto.nombre);
-      if (found) elegirProducto(found.nombre, found.cat || found.categoria || "");
-    }, 150);
-    // Flash verde en el input
-    const inp = document.getElementById("scannerInput");
-    inp.style.color = "#86efac";
-    setTimeout(() => { inp.style.color = "#86efac"; }, 300);
+    setTimeout(() => elegirProducto(producto.nombre, producto.categoria || ""), 150);
   } else {
-    // No encontrado → flash rojo + mensaje
     const inp = document.getElementById("scannerInput");
     inp.placeholder = `❌ Código "${codigo}" no encontrado`;
     inp.style.color = "#fca5a5";
-    setTimeout(() => {
-      inp.placeholder = "Esperando código de barras...";
-      inp.style.color = "#86efac";
-    }, 2000);
+    setTimeout(() => { inp.placeholder = "Esperando código de barras..."; inp.style.color = "#86efac"; }, 2000);
+  }
+}
+
+// ── ESCÁNER dentro del modal de VENTA ────────────────────────────────────
+function onVentaScannerKey(e) {
+  if (e.key !== "Enter") return;
+  const codigo   = document.getElementById("ventaScannerInput").value.trim();
+  const statusEl = document.getElementById("ventaScannerStatus");
+  document.getElementById("ventaScannerInput").value = "";
+  if (!codigo) return;
+
+  const producto = stockDataGlobal.find(p => p.codigo && p.codigo === codigo);
+  if (producto) {
+    elegirProducto(producto.nombre, producto.categoria || "");
+    statusEl.style.color = "#86efac";
+    statusEl.textContent = "✅ " + producto.nombre.slice(0, 22) + (producto.nombre.length > 22 ? "…" : "");
+    setTimeout(() => { statusEl.style.color = "#6b7280"; statusEl.textContent = "o buscá abajo"; }, 2500);
+    setTimeout(() => document.getElementById("addCantidad").focus(), 100);
+  } else {
+    statusEl.style.color = "#fca5a5";
+    statusEl.textContent = "❌ Código no encontrado";
+    setTimeout(() => { statusEl.style.color = "#6b7280"; statusEl.textContent = "o buscá abajo"; }, 2500);
   }
 }
 
 // ── AJUSTE RÁPIDO DE STOCK ────────────────────────────────────────────────
 function abrirAjuste(nombre, stockActual, minimo, maximo) {
-  document.getElementById("ajusteNombre").textContent    = nombre;
-  document.getElementById("ajusteProducto").value        = nombre;
-  document.getElementById("ajusteCantidad").value        = stockActual;
-  document.getElementById("ajusteMinimo").value          = minimo  || "";
-  document.getElementById("ajusteMaximo").value          = maximo  || "";
-  document.getElementById("ajusteMotivo").value          = "";
-  document.getElementById("ajusteError").textContent     = "";
+  document.getElementById("ajusteNombre").textContent       = nombre;
+  document.getElementById("ajusteProducto").value           = nombre;
+  document.getElementById("ajusteCantidad").value           = stockActual;
+  document.getElementById("ajusteMinimo").value             = minimo || "";
+  document.getElementById("ajusteMaximo").value             = maximo || "";
+  document.getElementById("ajusteMotivo").value             = "";
+  document.getElementById("ajusteError").textContent        = "";
+  document.getElementById("ajusteCodigoStatus").textContent = "";
+  // Pre-cargar código si el producto ya tiene uno registrado
+  const prod = stockDataGlobal.find(p => p.nombre === nombre);
+  document.getElementById("ajusteCodigo").value = prod?.codigo || "";
   document.getElementById("ajusteOverlay").style.display = "flex";
-  document.getElementById("ajusteCantidad").focus();
-  document.getElementById("ajusteCantidad").select();
+  // Foco al código si está vacío, sino a la cantidad
+  const codVal = document.getElementById("ajusteCodigo").value;
+  if (!codVal) {
+    document.getElementById("ajusteCodigo").focus();
+  } else {
+    document.getElementById("ajusteCantidad").focus();
+    document.getElementById("ajusteCantidad").select();
+  }
 }
 
 function cerrarAjuste() {
@@ -4666,6 +4707,7 @@ async function guardarAjuste() {
   const minimo   = parseFloat(document.getElementById("ajusteMinimo").value)  || 0;
   const maximo   = parseFloat(document.getElementById("ajusteMaximo").value)  || 0;
   const motivo   = document.getElementById("ajusteMotivo").value.trim() || "Ajuste manual";
+  const codigo   = document.getElementById("ajusteCodigo").value.trim();
   const errEl    = document.getElementById("ajusteError");
   if (isNaN(cantidad) || cantidad < 0) { errEl.textContent = "Ingresá una cantidad válida (≥ 0)."; return; }
   const btn = document.getElementById("btnGuardarAjuste");
@@ -4678,6 +4720,7 @@ async function guardarAjuste() {
     fd.append("minimo",        minimo);
     fd.append("maximo",        maximo);
     fd.append("observaciones", motivo);
+    fd.append("codigo",        codigo);
     const res  = await fetch(APPS_SCRIPT_STOCK_URL, { method:"POST", body:fd });
     const data = await res.json();
     if (data.ok) { cerrarAjuste(); setTimeout(init, 800); }
