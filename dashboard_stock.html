@@ -6,7 +6,6 @@
 <title>Veterinaria Babys — Control de Stock</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 /*
   DEEP SPACE & NEON ACCENT — Veterinaria Babys
@@ -993,11 +992,6 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
       <span>Relevamiento</span>
     </button>
 
-    <button class="nav-item" onclick="switchTab('presupuestos', this)">
-      <span class="nav-icon">🧾</span>
-      <span>Presupuestos</span>
-    </button>
-
   </nav>
 
   <!-- Footer -->
@@ -1007,7 +1001,7 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
       <span class="sidebar-time-text">Actualizado: <span id="lastUpdate">—</span></span>
     </div>
     <button class="btn-nuevo-mov" onclick="abrirModal()">
-      ➕ Registrar movimiento
+      💵 Registrar venta
     </button>
   </div>
 
@@ -1175,7 +1169,6 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
                     <th>Mínimo</th>
                     <th>Nivel</th>
                     <th>Estado</th>
-                    <th style="width:80px;"></th>
                   </tr>
                 </thead>
                 <tbody id="stockBody"></tbody>
@@ -1401,120 +1394,6 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
           </div>
         </div>
 
-        <!-- TAB: PRESUPUESTOS -->
-        <div id="tab-presupuestos" class="tab-content">
-          <div style="max-width:720px;margin:0 auto;">
-
-            <!-- Header card -->
-            <div class="kpi-card visible" style="border-top-color:#06b6d4;margin-bottom:20px;padding:20px 24px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div>
-                  <div class="kpi-label">Presupuestos</div>
-                  <div style="font-size:13px;color:var(--text-2);margin-top:4px;">Armá un presupuesto con múltiples productos — no descuenta stock</div>
-                </div>
-                <div style="font-size:36px;">🧾</div>
-              </div>
-            </div>
-
-            <!-- Formulario -->
-            <div class="table-card visible" style="padding:24px;margin-bottom:16px;">
-
-              <!-- Cliente -->
-              <div style="margin-bottom:16px;">
-                <div class="form-label" style="margin-bottom:6px;">Cliente <span style="color:var(--text-3);font-weight:400;text-transform:none;">(opcional)</span></div>
-                <input type="text" id="presNombreCliente"
-                  placeholder="Ej: Juan Pérez"
-                  style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;
-                  background:var(--card);color:var(--text);font-size:13.5px;font-family:'Inter',sans-serif;outline:none;">
-              </div>
-
-              <!-- Buscador de producto -->
-              <div class="form-label" style="margin-bottom:6px;">Buscar producto del stock</div>
-              <div style="position:relative;margin-bottom:10px;">
-                <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none;">🔍</span>
-                <input type="text" id="presSearch"
-                  placeholder="Escribí nombre del producto..."
-                  oninput="filtrarPresProductos()"
-                  onfocus="abrirPresDropdown()"
-                  autocomplete="off"
-                  style="width:100%;padding:9px 12px 9px 34px;border:1px solid var(--border);border-radius:8px;
-                  background:var(--card);color:var(--text);font-size:13.5px;font-family:'Inter',sans-serif;outline:none;">
-                <div id="presDropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;
-                  background:var(--card);border:1px solid var(--border);border-radius:8px;
-                  max-height:200px;overflow-y:auto;z-index:200;
-                  box-shadow:0 8px 24px rgba(0,0,0,0.4);"></div>
-              </div>
-
-              <!-- Producto seleccionado + cantidad + precio -->
-              <div id="presProductoLabel" style="font-size:13px;color:var(--text-3);font-style:italic;margin-bottom:10px;min-height:18px;">
-                Ningún producto seleccionado
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:14px;">
-                <div>
-                  <div class="form-label" style="margin-bottom:5px;">Cantidad</div>
-                  <input type="number" id="presCantidad" placeholder="1" min="1" step="1"
-                    style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;
-                    background:var(--card);color:var(--text);font-size:13.5px;font-family:'Inter',sans-serif;outline:none;">
-                </div>
-                <div>
-                  <div class="form-label" style="margin-bottom:5px;">Precio unitario $</div>
-                  <input type="number" id="presPrecioUnit" placeholder="0" min="0"
-                    style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;
-                    background:var(--card);color:var(--text);font-size:13.5px;font-family:'Inter',sans-serif;outline:none;">
-                </div>
-                <button onclick="agregarItemPresupuesto()"
-                  style="padding:9px 16px;background:var(--vi-grad);color:#fff;border:none;border-radius:8px;
-                  font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;">
-                  + Agregar
-                </button>
-              </div>
-
-              <!-- Carrito presupuesto -->
-              <div id="presCarritoWrap" style="display:none;border:1px solid var(--border);border-radius:9px;overflow:hidden;margin-bottom:16px;">
-                <div style="background:var(--surface);padding:7px 13px;font-size:10.5px;font-weight:700;
-                  color:var(--text-3);text-transform:uppercase;letter-spacing:0.6px;
-                  display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);">
-                  <span>Productos del presupuesto</span>
-                  <span id="presCarritoCount" style="color:#06b6d4;font-weight:800;">0</span>
-                </div>
-                <div id="presCarritoItems"></div>
-                <!-- Totalizador -->
-                <div style="padding:12px 14px;border-top:1px solid var(--border);background:rgba(6,182,212,0.04);
-                  display:flex;justify-content:space-between;align-items:center;">
-                  <span style="font-size:13px;font-weight:600;color:var(--text-2);">TOTAL PRESUPUESTO</span>
-                  <span id="presTotalLabel" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;color:#06b6d4;">$0</span>
-                </div>
-              </div>
-
-              <!-- Observaciones -->
-              <div style="margin-bottom:16px;">
-                <div class="form-label" style="margin-bottom:6px;">Observaciones <span style="color:var(--text-3);font-weight:400;text-transform:none;">(opcional)</span></div>
-                <input type="text" id="presObs"
-                  placeholder="Ej: válido por 48hs, incluye colocación..."
-                  style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;
-                  background:var(--card);color:var(--text);font-size:13.5px;font-family:'Inter',sans-serif;outline:none;">
-              </div>
-
-              <!-- Botones -->
-              <div style="display:flex;gap:10px;">
-                <button onclick="limpiarPresupuesto()"
-                  style="flex:1;padding:12px;background:transparent;color:var(--text-2);border:1px solid var(--border);
-                  border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">
-                  🗑 Limpiar
-                </button>
-                <button onclick="abrirPreviewPresupuesto()"
-                  style="flex:2;padding:12px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;
-                  border:none;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer;
-                  font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:7px;">
-                  👁 Ver presupuesto
-                </button>
-              </div>
-
-            </div>
-
-          </div>
-        </div>
-
       </div><!-- /#content -->
     </div><!-- /.main-content -->
 
@@ -1548,8 +1427,8 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
           <button onclick="preguntaRapida(this)" class="rp-chip">📊 Resumen ejecutivo</button>
           <button onclick="preguntaRapida(this)" class="rp-chip">📈 ¿Cómo estuvo esta semana?</button>
           <button onclick="preguntaRapida(this)" class="rp-chip">🔮 ¿Cuándo se agota el stock?</button>
-          <button onclick="preguntaRapida(this)" class="rp-chip">🏷️ ¿Cuáles tienen mejor margen?</button>
-          <button onclick="preguntaRapida(this)" class="rp-chip">📉 ¿Cuáles tienen peor margen?</button>
+          <button onclick="preguntaRapida(this)" class="rp-chip">🛒 ¿Qué comprarle a proveedores?</button>
+          <button onclick="preguntaRapida(this)" class="rp-chip">💤 ¿Qué productos no se venden?</button>
           <button onclick="preguntaRapida(this)" class="rp-chip">🔥 ¿Cuál es el más vendido?</button>
         </div>
       </div>
@@ -1574,102 +1453,13 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
 </div><!-- /.app-body -->
 
 <!-- ══════════════════════════════════════
-     MODAL — AJUSTE RÁPIDO DE STOCK
-══════════════════════════════════════ -->
-<div id="ajusteOverlay" onclick="if(event.target===this)cerrarAjuste()"
-  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);
-  z-index:500;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:#1c1a29;border:1px solid #2d2a40;border-radius:16px;
-    width:100%;max-width:420px;box-shadow:0 20px 50px rgba(0,0,0,0.5);">
-
-    <!-- Header -->
-    <div style="padding:18px 22px 14px;border-bottom:1px solid #2d2a40;
-      display:flex;align-items:center;justify-content:space-between;">
-      <div style="display:flex;align-items:center;gap:9px;">
-        <span style="font-size:18px;">✏️</span>
-        <div>
-          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:15px;color:#fff;">Ajustar stock</div>
-          <div id="ajusteNombre" style="font-size:12px;color:#a78bfa;margin-top:1px;font-weight:600;"></div>
-        </div>
-      </div>
-      <button onclick="cerrarAjuste()"
-        style="width:28px;height:28px;background:#13111c;border:1px solid #2d2a40;
-        border-radius:7px;color:#a1a1aa;cursor:pointer;font-size:14px;">✕</button>
-    </div>
-
-    <!-- Body -->
-    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:13px;">
-      <input type="hidden" id="ajusteProducto">
-
-      <!-- Cantidad -->
-      <div>
-        <div style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">
-          Cantidad real en depósito <span style="color:#ef4444;">*</span>
-        </div>
-        <input type="number" id="ajusteCantidad" min="0" step="1"
-          placeholder="Ej: 12"
-          onkeydown="if(event.key==='Enter')guardarAjuste()"
-          style="width:100%;padding:10px 13px;border:1px solid #2d2a40;border-radius:9px;
-          font-size:15px;font-weight:700;color:#fff;background:#13111c;outline:none;
-          font-family:'Inter',sans-serif;text-align:center;">
-      </div>
-
-      <!-- Mínimo y Máximo -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div>
-          <div style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Stock mínimo</div>
-          <input type="number" id="ajusteMinimo" min="0" step="1"
-            placeholder="Ej: 5"
-            style="width:100%;padding:9px 12px;border:1px solid #2d2a40;border-radius:9px;
-            font-size:14px;color:#fff;background:#13111c;outline:none;font-family:'Inter',sans-serif;">
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Stock máximo</div>
-          <input type="number" id="ajusteMaximo" min="0" step="1"
-            placeholder="Ej: 30"
-            style="width:100%;padding:9px 12px;border:1px solid #2d2a40;border-radius:9px;
-            font-size:14px;color:#fff;background:#13111c;outline:none;font-family:'Inter',sans-serif;">
-        </div>
-      </div>
-
-      <!-- Motivo -->
-      <div>
-        <div style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">
-          Motivo <span style="color:#52525b;font-weight:400;text-transform:none;">(opcional)</span>
-        </div>
-        <input type="text" id="ajusteMotivo"
-          placeholder="Ej: corrección post-relevamiento, conteo físico..."
-          style="width:100%;padding:9px 13px;border:1px solid #2d2a40;border-radius:9px;
-          font-size:13.5px;color:#fff;background:#13111c;outline:none;font-family:'Inter',sans-serif;">
-      </div>
-
-      <!-- Error -->
-      <div id="ajusteError" style="font-size:12.5px;color:#fca5a5;min-height:16px;"></div>
-    </div>
-
-    <!-- Footer -->
-    <div style="padding:0 22px 18px;display:flex;gap:10px;">
-      <button onclick="cerrarAjuste()"
-        style="flex:1;padding:11px;background:transparent;color:#a1a1aa;
-        border:1px solid #2d2a40;border-radius:9px;font-family:'Inter',sans-serif;
-        font-weight:600;font-size:13.5px;cursor:pointer;">Cancelar</button>
-      <button id="btnGuardarAjuste" onclick="guardarAjuste()"
-        style="flex:2;padding:11px;background:linear-gradient(135deg,#6366f1,#8b5cf6);
-        color:#fff;border:none;border-radius:9px;font-family:'Inter',sans-serif;
-        font-weight:700;font-size:13.5px;cursor:pointer;">✅ Guardar ajuste</button>
-    </div>
-
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
      MODAL — REGISTRAR MOVIMIENTO
 ══════════════════════════════════════ -->
 <div class="modal-overlay" id="modalOverlay" onclick="cerrarModalSiAfuera(event)">
   <div class="modal">
 
     <div class="modal-header">
-      <div class="modal-title"><span>📦</span> Registrar movimiento</div>
+      <div class="modal-title"><span>💵</span> Registrar venta</div>
       <button class="modal-close" onclick="cerrarModal()">✕</button>
     </div>
 
@@ -1677,18 +1467,12 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
       <div class="modal-scroll">
         <div class="modal-body">
 
-          <!-- Tipo -->
-          <div class="form-group">
+          <!-- Tipo — solo Venta -->
+          <div class="form-group" style="display:none;">
             <div class="form-label">Tipo de movimiento</div>
             <div class="tipo-pills">
-              <button type="button" class="tipo-pill entrada" onclick="seleccionarTipo('ENTRADA', this)">
-                <span class="pill-icon">⬆️</span>Entrada
-              </button>
-              <button type="button" class="tipo-pill salida" onclick="seleccionarTipo('SALIDA', this)">
-                <span class="pill-icon">⬇️</span>Salida
-              </button>
-              <button type="button" class="tipo-pill ajuste" onclick="seleccionarTipo('AJUSTE', this)">
-                <span class="pill-icon">🔄</span>Ajuste
+              <button type="button" class="tipo-pill salida selected" onclick="seleccionarTipo('SALIDA', this)">
+                <span class="pill-icon">💵</span>Venta
               </button>
             </div>
           </div>
@@ -1839,7 +1623,6 @@ const TAB_META = {
   movimientos:   { title: 'Historial de Movimientos', sub: 'Últimos movimientos registrados' },
   ventas:        { title: 'Ventas',                   sub: 'Facturación y márgenes' },
   relevamiento:  { title: 'Relevamiento de Stock',    sub: 'Conteo inicial desde el depósito' },
-  presupuestos:  { title: 'Presupuestos',              sub: 'Generá presupuestos sin afectar el stock' },
 };
 
 function switchTab(tab, btn) {
@@ -2011,17 +1794,7 @@ function renderStock(rows) {
       <td><span class="stock-num" style="color:${barColor}">${stock}</span></td>
       <td style="color:#71717a;font-weight:600;">${minimo}</td>
       <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${barColor}"></div></div><span class="progress-pct">${pct}%</span></div></td>
-      <td><span class="status-pill ${estadoClass}">${estadoIcon} ${estadoLabel}</span></td>
-      <td style="text-align:center;">
-        <button onclick="abrirAjuste('${nombre.replace(/'/g,"\\'")}',${stock},${minimo},${maximo})"
-          style="padding:4px 10px;font-size:11.5px;font-weight:600;border-radius:6px;cursor:pointer;
-          background:transparent;color:#a78bfa;border:1px solid rgba(139,92,246,0.35);
-          font-family:'Inter',sans-serif;transition:all 0.2s;"
-          onmouseover="this.style.background='rgba(139,92,246,0.1)'"
-          onmouseout="this.style.background='transparent'">
-          ✏️ Ajustar
-        </button>
-      </td>`;
+      <td><span class="status-pill ${estadoClass}">${estadoIcon} ${estadoLabel}</span></td>`;
     tbody.appendChild(tr);
     todosLosProductos.push(tr);
   }
@@ -2386,54 +2159,12 @@ ${detalleStr||"—"}`;
 })()}
 
 ${(()=>{
-  if(!preciosDataGlobal||preciosDataGlobal.length===0) return "PRECIOS PROVEEDORES: Sin datos cargados.";
-
-  // Resumen por proveedor
+  if(!preciosDataGlobal||preciosDataGlobal.length===0) return "Sin datos de precios.";
   const porProv={};
-  preciosDataGlobal.forEach(p=>{
-    if(!porProv[p.proveedor]) porProv[p.proveedor]={total:0,conMargen:0,sumMargen:0,agotados:0};
-    porProv[p.proveedor].total++;
-    if(p.margen!==null){porProv[p.proveedor].conMargen++;porProv[p.proveedor].sumMargen+=p.margen;}
-    if(p.stock==="Agotado") porProv[p.proveedor].agotados++;
-  });
-  const resumenProv=Object.entries(porProv).map(([nom,d])=>
-    `  - ${nom}: ${d.total} prods${d.conMargen>0?" | margen prom: "+Math.round(d.sumMargen/d.conMargen)+"%":""}${d.agotados>0?" | "+d.agotados+" agotados":""}`
-  ).join("\n");
-
-  // Cruce: productos en stock que tienen precio de proveedor
-  const cruce=[];
-  stockDataGlobal.forEach(sp=>{
-    const match=preciosDataGlobal.find(pp=>
-      pp.desc.toLowerCase().includes(sp.nombre.toLowerCase().split(" ").slice(0,3).join(" ").toLowerCase()) ||
-      sp.nombre.toLowerCase().includes(pp.desc.toLowerCase().split(" ").slice(0,3).join(" ").toLowerCase())
-    );
-    if(match) cruce.push({nombre:sp.nombre,stock:sp.stock,estado:sp.estado,costo:match.costo,venta:match.venta,margen:match.margen,proveedor:match.proveedor});
-  });
-  const cruceStr=cruce.length>0
-    ? cruce.map(p=>`  - ${p.nombre} | stock:${p.stock} (${p.estado}) | costo:$${p.costo>0?p.costo.toLocaleString("es-AR"):"?"} | venta:$${p.venta>0?p.venta.toLocaleString("es-AR"):"?"} | margen:${p.margen!==null?p.margen+"%":"?"} | prov:${p.proveedor}`).join("\n")
-    : "  Sin cruces encontrados.";
-
-  // Top mejores y peores margenes
-  const conMargen=preciosDataGlobal.filter(p=>p.margen!==null).sort((a,b)=>b.margen-a.margen);
-  const top10=conMargen.slice(0,10).map(p=>`  - ${p.desc} (${p.proveedor}): ${p.margen}%`).join("\n");
-  const bot10=conMargen.slice(-10).reverse().map(p=>`  - ${p.desc} (${p.proveedor}): ${p.margen}%`).join("\n");
-
-  // Lista para consultas puntuales (300 max)
-  const lista=preciosDataGlobal.slice(0,300).map(p=>
-    `  ${p.desc} | ${p.proveedor} | costo:$${p.costo>0?p.costo.toLocaleString("es-AR"):"—"} | venta:$${p.venta>0?p.venta.toLocaleString("es-AR"):"—"} | margen:${p.margen!==null?p.margen+"%":"—"}`
-  ).join("\n");
-
-  return `PRECIOS PROVEEDORES (${preciosDataGlobal.length} productos):
-RESUMEN POR PROVEEDOR:
-${resumenProv}
-STOCK CON PRECIO DE PROVEEDOR:
-${cruceStr}
-TOP 10 MEJORES MARGENES:
-${top10||"Sin datos"}
-10 PEORES MARGENES:
-${bot10||"Sin datos"}
-LISTA COMPLETA (primeros 300):
-${lista}`;
+  preciosDataGlobal.forEach(p=>{if(!porProv[p.proveedor])porProv[p.proveedor]={total:0,margenes:[]};porProv[p.proveedor].total++;if(p.venta>0)porProv[p.proveedor].margenes.push(p.margen);});
+  const mg=preciosDataGlobal.filter(p=>p.margen!==null);
+  const margenG=mg.length>0?Math.round(mg.reduce((s,p)=>s+(p.margen||0),0)/mg.length):0;
+  return `PRECIOS: ${preciosDataGlobal.length} productos | ${Object.keys(porProv).length} proveedores | margen promedio: ${margenG}%`;
 })()}`;
 }
 
@@ -2591,8 +2322,8 @@ function abrirModal() {
     selResp.appendChild(opt);
   });
 
-  // Reset completo
-  tipoSeleccionado = "";
+  // Reset completo — tipo fijo en SALIDA (venta)
+  tipoSeleccionado = "SALIDA";
   productoSeleccionado = "";
   carrito = [];
   document.querySelectorAll(".tipo-pill").forEach(p => p.classList.remove("selected"));
@@ -2623,6 +2354,15 @@ function abrirModal() {
       b.classList.remove("active");
     }
   });
+
+  // Como el tipo es siempre SALIDA/Venta, mostrar campos de venta directamente
+  const secPV2 = document.getElementById("seccion-precio-venta");
+  if (secPV2) secPV2.style.display = "block";
+  const secMP2 = document.getElementById("seccion-medio-pago");
+  if (secMP2) secMP2.style.display = "block";
+  const secEmail2 = document.getElementById("seccion-email-cliente");
+  if (secEmail2) secEmail2.style.display = "block";
+  actualizarTablaPrecios && actualizarTablaPrecios();
 
   document.getElementById("modalOverlay").classList.add("open");
   document.body.style.overflow = "hidden";
@@ -4633,574 +4373,7 @@ function actualizarRelHistorial() {
     </div>`).join("");
 }
 
-// ════════════════════════════════════════════════════════════
-//  AJUSTE RÁPIDO DE STOCK
-// ════════════════════════════════════════════════════════════
-
-function abrirAjuste(nombre, stockActual, minimo, maximo) {
-  document.getElementById("ajusteNombre").textContent    = nombre;
-  document.getElementById("ajusteProducto").value       = nombre;
-  document.getElementById("ajusteCantidad").value       = stockActual;
-  document.getElementById("ajusteMinimo").value         = minimo  || "";
-  document.getElementById("ajusteMaximo").value         = maximo  || "";
-  document.getElementById("ajusteMotivo").value         = "";
-  document.getElementById("ajusteError").textContent    = "";
-  document.getElementById("ajusteOverlay").style.display = "flex";
-  document.getElementById("ajusteCantidad").focus();
-  document.getElementById("ajusteCantidad").select();
-}
-
-function cerrarAjuste() {
-  document.getElementById("ajusteOverlay").style.display = "none";
-}
-
-async function guardarAjuste() {
-  const nombre   = document.getElementById("ajusteProducto").value;
-  const cantidad = parseFloat(document.getElementById("ajusteCantidad").value);
-  const minimo   = parseFloat(document.getElementById("ajusteMinimo").value)  || 0;
-  const maximo   = parseFloat(document.getElementById("ajusteMaximo").value)  || 0;
-  const motivo   = document.getElementById("ajusteMotivo").value.trim() || "Ajuste manual";
-  const errEl    = document.getElementById("ajusteError");
-
-  if (isNaN(cantidad) || cantidad < 0) {
-    errEl.textContent = "Ingresá una cantidad válida (≥ 0).";
-    return;
-  }
-
-  const btn = document.getElementById("btnGuardarAjuste");
-  btn.disabled = true;
-  btn.textContent = "Guardando...";
-  errEl.textContent = "";
-
-  try {
-    const fd = new FormData();
-    fd.append("accion",      "ajuste_stock");
-    fd.append("producto",    nombre);
-    fd.append("cantidad",    cantidad);
-    fd.append("minimo",      minimo);
-    fd.append("maximo",      maximo);
-    fd.append("observaciones", motivo);
-
-    const res  = await fetch(APPS_SCRIPT_STOCK_URL, { method: "POST", body: fd });
-    const data = await res.json();
-
-    if (data.ok) {
-      cerrarAjuste();
-      setTimeout(init, 800);
-    } else {
-      errEl.textContent = "Error: " + (data.msg || "No se pudo guardar.");
-    }
-  } catch(e) {
-    errEl.textContent = "Error de conexión.";
-    console.error(e);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "✅ Guardar ajuste";
-  }
-}
-
 init();
 </script>
-
-<script>
-// ════════════════════════════════════════════════════════════
-//  MÓDULO PRESUPUESTOS
-// ════════════════════════════════════════════════════════════
-
-let presCarrito = [];
-let presProductoSeleccionado = null;
-
-function abrirPresDropdown() { filtrarPresProductos(); }
-
-function filtrarPresProductos() {
-  const q  = (document.getElementById("presSearch")?.value || "").toLowerCase().trim();
-  const dd = document.getElementById("presDropdown");
-  if (!dd) return;
-
-  const fuente = stockDataGlobal.length > 0 ? stockDataGlobal : [];
-  const filtrados = q === ""
-    ? fuente.slice(0, 40)
-    : fuente.filter(p => p.nombre.toLowerCase().includes(q)).slice(0, 40);
-
-  if (!filtrados.length) {
-    dd.style.display = "block";
-    dd.innerHTML = `<div style="padding:10px 14px;color:var(--text-3);font-size:13px;">No se encontraron productos en stock</div>`;
-    return;
-  }
-  dd.style.display = "block";
-  dd.innerHTML = filtrados.map((p, i) => `
-    <div class="pres-dd-item" data-idx="${i}"
-      style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);"
-      onmouseover="this.style.background='var(--card-hover)'"
-      onmouseout="this.style.background='transparent'">
-      <div style="font-size:13.5px;font-weight:600;color:var(--text);">${p.nombre}</div>
-      <div style="font-size:11.5px;color:var(--text-3);margin-top:2px;">${p.categoria || ""}${p.precio > 0 ? " — Costo: $" + p.precio.toLocaleString("es-AR") : ""}</div>
-    </div>`
-  ).join("");
-  dd._filtrados = filtrados;
-}
-
-// Click delegation para el dropdown de presupuesto
-document.addEventListener("click", e => {
-  const search = document.getElementById("presSearch");
-  const dd     = document.getElementById("presDropdown");
-  if (!dd) return;
-
-  const item = e.target.closest(".pres-dd-item");
-  if (item && dd.contains(item)) {
-    const idx = parseInt(item.dataset.idx);
-    const p   = dd._filtrados?.[idx];
-    if (p) elegirPresProducto(p);
-    return;
-  }
-  if (search && !search.contains(e.target) && !dd.contains(e.target)) {
-    dd.style.display = "none";
-  }
-});
-
-function elegirPresProducto(p) {
-  presProductoSeleccionado = p;
-  const dd = document.getElementById("presDropdown");
-  if (dd) { dd.style.display = "none"; dd._filtrados = null; }
-  document.getElementById("presSearch").value = "";
-
-  document.getElementById("presProductoLabel").innerHTML =
-    `<strong style="color:var(--text);font-size:14px;">✅ ${p.nombre}</strong>
-     <span style="color:var(--text-3);font-size:12px;margin-left:8px;">${p.categoria || ""}</span>`;
-
-  // Pre-cargar precio de venta sugerido desde preciosDataGlobal
-  const match = preciosDataGlobal.find(pr =>
-    pr.desc.toLowerCase().includes(p.nombre.toLowerCase().split(" ").slice(0,3).join(" ").toLowerCase())
-  );
-  const precioSug = match?.venta || match?.conIVA || p.precio || 0;
-  if (precioSug > 0) document.getElementById("presPrecioUnit").value = precioSug;
-
-  document.getElementById("presCantidad").value = 1;
-  document.getElementById("presCantidad").focus();
-}
-
-function agregarItemPresupuesto() {
-  if (!presProductoSeleccionado) { alert("Seleccioná un producto primero."); return; }
-  const cant  = parseFloat(document.getElementById("presCantidad").value) || 1;
-  const precio = parseFloat(document.getElementById("presPrecioUnit").value) || 0;
-  if (!precio) { alert("Ingresá el precio unitario."); return; }
-
-  const existe = presCarrito.find(i => i.nombre === presProductoSeleccionado.nombre);
-  if (existe) {
-    existe.cantidad = cant;
-    existe.precio   = precio;
-  } else {
-    presCarrito.push({
-      nombre:   presProductoSeleccionado.nombre,
-      categoria: presProductoSeleccionado.categoria || "",
-      cantidad: cant,
-      precio:   precio
-    });
-  }
-
-  presProductoSeleccionado = null;
-  document.getElementById("presProductoLabel").innerHTML =
-    '<span style="color:var(--text-3);font-style:italic;">Ningún producto seleccionado</span>';
-  document.getElementById("presCantidad").value  = "";
-  document.getElementById("presPrecioUnit").value = "";
-
-  renderPresCarrito();
-  document.getElementById("presSearch").focus();
-}
-
-function quitarPresItem(idx) {
-  presCarrito.splice(idx, 1);
-  renderPresCarrito();
-}
-
-function renderPresCarrito() {
-  const wrap  = document.getElementById("presCarritoWrap");
-  const items = document.getElementById("presCarritoItems");
-  const count = document.getElementById("presCarritoCount");
-  const total = presCarrito.reduce((s, i) => s + i.cantidad * i.precio, 0);
-
-  count.textContent = presCarrito.length;
-  document.getElementById("presTotalLabel").textContent =
-    "$" + total.toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-
-  if (!presCarrito.length) { wrap.style.display = "none"; items.innerHTML = ""; return; }
-
-  wrap.style.display = "block";
-  items.innerHTML = presCarrito.map((item, i) => `
-    <div style="display:flex;align-items:center;justify-content:space-between;
-      padding:9px 13px;border-top:1px solid var(--border);font-size:13.5px;gap:8px;
-      transition:background 0.2s;" onmouseover="this.style.background='var(--card-hover)'"
-      onmouseout="this.style.background='transparent'">
-      <div style="flex:1;">
-        <div style="font-weight:600;color:var(--text);">${item.nombre}</div>
-        <div style="font-size:11.5px;color:var(--text-3);">$${item.precio.toLocaleString("es-AR")} × ${item.cantidad} = $${(item.precio*item.cantidad).toLocaleString("es-AR")}</div>
-      </div>
-      <button onclick="quitarPresItem(${i})"
-        style="width:24px;height:24px;background:transparent;color:#fca5a5;border:1px solid #7f1d1d;
-        border-radius:5px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;">✕</button>
-    </div>`
-  ).join("");
-}
-
-function limpiarPresupuesto() {
-  presCarrito = [];
-  presProductoSeleccionado = null;
-  document.getElementById("presNombreCliente").value = "";
-  document.getElementById("presObs").value           = "";
-  document.getElementById("presSearch").value        = "";
-  document.getElementById("presCantidad").value      = "";
-  document.getElementById("presPrecioUnit").value    = "";
-  document.getElementById("presProductoLabel").innerHTML =
-    '<span style="color:var(--text-3);font-style:italic;">Ningún producto seleccionado</span>';
-  renderPresCarrito();
-}
-
-// ── Preview modal ────────────────────────────────────────────
-function abrirPreviewPresupuesto() {
-  if (!presCarrito.length) { alert("Agregá al menos un producto al presupuesto."); return; }
-
-  const cliente = document.getElementById("presNombreCliente").value.trim();
-  const obs     = document.getElementById("presObs").value.trim();
-  const fecha   = new Date().toLocaleString("es-AR", { day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit" });
-  const total   = presCarrito.reduce((s, i) => s + i.cantidad * i.precio, 0);
-
-  const productosHTML = presCarrito.map(item => {
-    const sub = item.precio * item.cantidad;
-    return `
-      <div style="padding:14px 20px;border-bottom:1px solid #2d2a40;display:flex;justify-content:space-between;align-items:center;gap:12px;">
-        <div style="flex:1;">
-          <div style="font-weight:600;font-size:14px;color:#fff;">${item.nombre}</div>
-          <div style="font-size:12px;color:#71717a;margin-top:2px;">Cantidad: ${item.cantidad} unidad${item.cantidad!==1?"es":""}</div>
-        </div>
-        <div style="text-align:right;flex-shrink:0;">
-          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:15px;color:#fff;">$${sub.toLocaleString("es-AR")}</div>
-          <div style="font-size:11.5px;color:#71717a;">$${item.precio.toLocaleString("es-AR")} c/u</div>
-        </div>
-      </div>`;
-  }).join("");
-
-  document.getElementById("presPreviewBody").innerHTML = `
-    <!-- Header violeta -->
-    <div style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:22px 24px;border-radius:16px 16px 0 0;display:flex;justify-content:space-between;align-items:flex-start;">
-      <div>
-        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:17px;color:#fff;">🐾 Veterinaria Babys</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:3px;">Presupuesto de compra</div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:18px;color:#fff;letter-spacing:-0.5px;">PRESUPUESTO</div>
-        <div style="font-size:11.5px;color:rgba(255,255,255,0.7);margin-top:2px;">${fecha}</div>
-      </div>
-    </div>
-
-    <!-- Total abonado -->
-    <div style="background:#1c1a29;padding:22px 24px;text-align:center;border-bottom:1px solid #2d2a40;">
-      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:#71717a;margin-bottom:6px;">TOTAL PRESUPUESTADO</div>
-      <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:36px;color:#a78bfa;letter-spacing:-1.5px;">$${total.toLocaleString("es-AR")}</div>
-      <div style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:6px 16px;
-        border-radius:20px;border:1px solid rgba(99,102,241,0.35);background:rgba(99,102,241,0.1);">
-        <span style="font-size:13px;">🧾</span>
-        <span style="font-size:12.5px;font-weight:700;color:#a78bfa;letter-spacing:0.5px;">PRESUPUESTO VÁLIDO 48 HS</span>
-      </div>
-    </div>
-
-    ${cliente ? `
-    <!-- Cliente -->
-    <div style="padding:14px 24px;border-bottom:1px solid #2d2a40;display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#71717a;">Cliente</span>
-      <span style="font-size:14px;font-weight:600;color:#fff;">${cliente}</span>
-    </div>` : ""}
-
-    <!-- Detalle productos -->
-    <div style="padding:16px 24px 6px;">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#71717a;margin-bottom:10px;">DETALLE DEL PRESUPUESTO</div>
-    </div>
-    <div style="background:#1c1a29;border-radius:10px;margin:0 16px;overflow:hidden;border:1px solid #2d2a40;">
-      ${productosHTML}
-    </div>
-
-    <!-- Desglose -->
-    <div style="padding:16px 24px;">
-      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2d2a40;">
-        <span style="font-size:13px;color:#a1a1aa;">Cantidad de ítems</span>
-        <span style="font-size:13px;font-weight:600;color:#fff;">${presCarrito.length}</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2d2a40;">
-        <span style="font-size:13px;color:#a1a1aa;">Fecha</span>
-        <span style="font-size:13px;font-weight:600;color:#fff;">${fecha}</span>
-      </div>
-      ${obs ? `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #2d2a40;">
-        <span style="font-size:13px;color:#a1a1aa;">Observaciones</span>
-        <span style="font-size:13px;font-weight:600;color:#fff;text-align:right;max-width:200px;">${obs}</span>
-      </div>` : ""}
-    </div>
-
-    <!-- Footer -->
-    <div style="padding:14px 24px 20px;text-align:center;">
-      <div style="font-size:11.5px;color:#52525b;">Presupuesto no válido como factura legal</div>
-      <div style="font-size:11.5px;color:#52525b;margin-top:2px;">🐾 ¡Gracias por confiar en Veterinaria Babys!</div>
-    </div>
-  `;
-
-  document.getElementById("presPreviewOverlay").style.display = "flex";
-}
-
-function cerrarPreviewPresupuesto() {
-  document.getElementById("presPreviewOverlay").style.display = "none";
-}
-
-async function descargarPDFPresupuesto() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-
-  // ── Constantes base ───────────────────────────────────────
-  const W    = 210;
-  const ML   = 14;          // margen izquierdo
-  const MR   = 14;          // margen derecho
-  const CW   = W - ML - MR; // 182mm ancho útil
-  const PAD  = 8;           // padding interno cards
-
-  // ── Paleta ────────────────────────────────────────────────
-  const PAGE  = [16, 17, 20];
-  const CARD  = [27, 28, 34];
-  const CYAN  = [101, 210, 213];
-  const WHITE = [255, 255, 255];
-  const GRAY  = [156, 163, 175];
-  const DIV   = [42, 43, 54];
-
-  // ── Columnas de la tabla (posiciones absolutas) ───────────
-  // Desc: ML+PAD → ancho 95mm
-  // Cant: col fija 110
-  // Precio: col fija 138
-  // Subtotal: col fija 166 (alineado derecha a W-MR-PAD = 188)
-  const COL_D = ML + PAD;         // 22
-  const COL_Q = 122;               // Cant
-  const COL_P = 146;               // Precio
-  const COL_S = W - MR - PAD;     // 188 — subtotal alineado derecha
-
-  const datos = {
-    cliente : (document.getElementById("presNombreCliente")?.value || "").trim(),
-    obs     : (document.getElementById("presObs")?.value || "").trim(),
-    fecha   : new Date().toLocaleDateString("es-AR", {day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}),
-    total   : presCarrito.reduce((s,i) => s + i.cantidad * i.precio, 0)
-  };
-
-  let y = 8;
-
-  // ── Fondo página ─────────────────────────────────────────
-  doc.setFillColor(...PAGE);
-  doc.rect(0, 0, W, 297, "F");
-
-  // ════════════════════════════════════════════════════════
-  // CARD 1 — Header
-  // ════════════════════════════════════════════════════════
-  const C1H = 34;
-  doc.setFillColor(...CARD);
-  doc.roundedRect(ML, y, CW, C1H, 3, 3, "F");
-
-  // Título "Veterinaria Babys"
-  doc.setFontSize(16);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(...CYAN);
-  doc.text("Veterinaria Babys", COL_D, y + 13);
-
-  // Subtítulo
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...GRAY);
-  doc.text("Presupuesto de compra", COL_D, y + 21);
-
-  // Chip "PRESUPUESTO" — letra grande, bien proporcionado
-  const CHIP_W = 60;
-  const CHIP_X = W - MR - PAD - CHIP_W;
-  const CHIP_Y = y + 8;
-  const CHIP_H = 14;
-  doc.setDrawColor(...CYAN);
-  doc.setLineWidth(0.35);
-  doc.roundedRect(CHIP_X, CHIP_Y, CHIP_W, CHIP_H, 2, 2, "S");
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(...CYAN);
-  doc.text("PRESUPUESTO", CHIP_X + CHIP_W/2, CHIP_Y + 9.5, { align: "center" });
-
-  // Fecha debajo del chip
-  doc.setFontSize(7);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...GRAY);
-  doc.text(datos.fecha, W - MR - PAD, y + 27, { align: "right" });
-
-  y += C1H + 4;
-
-  // ════════════════════════════════════════════════════════
-  // CARD 2 — Total
-  // ════════════════════════════════════════════════════════
-  const C2H = 30;
-  doc.setFillColor(...CARD);
-  doc.roundedRect(ML, y, CW, C2H, 3, 3, "F");
-
-  // Label — SIN setCharSpace para que el centrado funcione
-  doc.setFontSize(7.5);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...GRAY);
-  doc.text("TOTAL  PRESUPUESTADO", W/2, y + 10, { align: "center" });
-
-  // Monto grande
-  doc.setFontSize(22);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(...CYAN);
-  doc.text(fmtPDF(datos.total), W/2, y + 23, { align: "center" });
-
-  y += C2H + 4;
-
-  // ════════════════════════════════════════════════════════
-  // CARD 3 — Detalle tabla
-  // ════════════════════════════════════════════════════════
-  const ROWA = 10; // altura fila
-  const clienteExtra = datos.cliente ? ROWA + 4 : 0;
-  const C3H = PAD
-    + clienteExtra
-    + ROWA + 2          // header cols
-    + presCarrito.length * (ROWA + 3)
-    + ROWA + 4          // fila total
-    + PAD;
-
-  doc.setFillColor(...CARD);
-  doc.roundedRect(ML, y, CW, C3H, 3, 3, "F");
-
-  let iy = y + PAD;
-
-  // ── Fila cliente ──────────────────────────────────────────
-  if (datos.cliente) {
-    doc.setFontSize(7.5);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(...GRAY);
-    doc.text("CLIENTE", COL_D, iy + 6);
-    doc.setFontSize(8.5);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(...WHITE);
-    doc.text(datos.cliente, COL_S, iy + 6, { align: "right" });
-    doc.setDrawColor(...DIV); doc.setLineWidth(0.2);
-    doc.line(COL_D, iy + ROWA, COL_S, iy + ROWA);
-    iy += ROWA + 4;
-  }
-
-  // ── Headers columnas ──────────────────────────────────────
-  doc.setFontSize(7.5);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(...GRAY);
-  doc.text("DESCRIPCIÓN", COL_D,   iy + 6);
-  doc.text("CANT.",       COL_Q,   iy + 6, { align: "center" });
-  doc.text("PRECIO",      COL_P,   iy + 6, { align: "center" });
-  doc.text("SUBTOTAL",    COL_S,   iy + 6, { align: "right" });
-
-  doc.setDrawColor(...DIV); doc.setLineWidth(0.25);
-  doc.line(COL_D, iy + ROWA, COL_S, iy + ROWA);
-  iy += ROWA + 2;
-
-  // ── Filas productos ───────────────────────────────────────
-  presCarrito.forEach(item => {
-    const sub  = item.precio * item.cantidad;
-    const rowH = ROWA + 3;
-
-    // Descripción — normal, truncada
-    doc.setFontSize(9.5);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(...WHITE);
-    const desc = doc.splitTextToSize(item.nombre, COL_Q - COL_D - 4)[0];
-    doc.text(desc, COL_D, iy + 6);
-
-    // Cant y Precio — gris, centrado en su columna
-    doc.setFontSize(9.5);
-    doc.setTextColor(...GRAY);
-    doc.text(String(item.cantidad),    COL_Q, iy + 6, { align: "center" });
-    doc.text(fmtPDF(item.precio),      COL_P, iy + 6, { align: "center" });
-
-    // Subtotal — blanco bold, alineado derecha
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(...WHITE);
-    doc.text(fmtPDF(sub),              COL_S, iy + 6, { align: "right" });
-    doc.setFont("helvetica", "normal");
-
-    doc.setDrawColor(...DIV); doc.setLineWidth(0.15);
-    doc.line(COL_D, iy + rowH, COL_S, iy + rowH);
-    iy += rowH;
-  });
-
-  // ── Fila TOTAL ────────────────────────────────────────────
-  iy += 4;
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(...GRAY);
-  doc.text("TOTAL", COL_P, iy + 5, { align: "center" });
-  doc.setFontSize(11);
-  doc.setTextColor(...CYAN);
-  doc.text(fmtPDF(datos.total), COL_S, iy + 6, { align: "right" });
-
-  y += C3H + 8;
-
-  // ── Obs ───────────────────────────────────────────────────
-  if (datos.obs) {
-    doc.setFontSize(7.5); doc.setFont("helvetica", "italic");
-    doc.setTextColor(...GRAY);
-    doc.text("Obs: " + datos.obs, ML, y);
-    y += 6;
-  }
-
-  // ── Nota legal ────────────────────────────────────────────
-  doc.setFontSize(7); doc.setFont("helvetica", "italic");
-  doc.setTextColor(...GRAY);
-  doc.text("Presupuesto no valido como factura legal. Los precios pueden variar.", ML, y);
-  y += 4.5;
-  doc.text("Para confirmar la compra, consulta en el local.", ML, y);
-
-  // ── Footer ────────────────────────────────────────────────
-  doc.setFillColor(...CARD);
-  doc.rect(0, 280, W, 17, "F");
-  doc.setDrawColor(...DIV); doc.setLineWidth(0.3);
-  doc.line(0, 280, W, 280);
-  doc.setFontSize(7.5); doc.setFont("helvetica", "normal");
-  doc.setTextColor(...GRAY);
-  doc.text("Veterinaria Babys · Sistema EficientPlus © 2026", W/2, 287, { align: "center" });
-  doc.setTextColor(...CYAN);
-  doc.text("Gracias por elegirnos", W/2, 293, { align: "center" });
-
-  // ── Guardar ───────────────────────────────────────────────
-  const ts = new Date().toLocaleDateString("es-AR").replace(/\//g, "-");
-  doc.save((datos.cliente
-    ? "presupuesto_" + datos.cliente.replace(/\s+/g, "_").toLowerCase() + "_" + ts
-    : "presupuesto_" + ts) + ".pdf");
-}
-
-
-
-function fmtPDF(v) {
-  return "$" + Number(v).toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-}
-</script>
-
-<!-- ══════════════════════════════════════
-     MODAL — PREVIEW PRESUPUESTO
-══════════════════════════════════════ -->
-<div id="presPreviewOverlay" onclick="if(event.target===this)cerrarPreviewPresupuesto()"
-  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);
-  z-index:1000;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:#13111c;border:1px solid #2d2a40;border-radius:18px;
-    width:100%;max-width:480px;max-height:90vh;overflow-y:auto;
-    box-shadow:0 24px 60px rgba(0,0,0,0.6);">
-    <div id="presPreviewBody"></div>
-    <div style="padding:14px 20px 20px;display:flex;gap:10px;border-top:1px solid #2d2a40;">
-      <button onclick="cerrarPreviewPresupuesto()"
-        style="flex:1;padding:11px;background:transparent;color:#a1a1aa;
-        border:1px solid #2d2a40;border-radius:9px;font-family:'Inter',sans-serif;
-        font-weight:600;font-size:13.5px;cursor:pointer;">Cerrar</button>
-      <button onclick="descargarPDFPresupuesto()"
-        style="flex:2;padding:11px;background:linear-gradient(135deg,#6366f1,#8b5cf6);
-        color:#fff;border:none;border-radius:9px;font-family:'Inter',sans-serif;
-        font-weight:700;font-size:13.5px;cursor:pointer;
-        display:flex;align-items:center;justify-content:center;gap:7px;">
-        🖨 Descargar PDF</button>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>
