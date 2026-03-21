@@ -6,6 +6,7 @@
 <title>Veterinaria Babys — Control de Stock</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 /*
   DEEP SPACE & NEON ACCENT — Veterinaria Babys
@@ -997,6 +998,11 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
       <span>Presupuestos</span>
     </button>
 
+    <button class="nav-item" onclick="switchTab('ordenes', this)">
+      <span class="nav-icon">📋</span>
+      <span>Órdenes de compra</span>
+    </button>
+
   </nav>
 
   <!-- Footer -->
@@ -1167,6 +1173,15 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
                   onmouseover="this.style.background='rgba(16,185,129,0.08)'"
                   onmouseout="this.style.background='transparent'">
                   <span>📷</span> Modo escáner
+                </button>
+                <button onclick="exportarStockExcel()"
+                  style="padding:6px 13px;background:transparent;color:#6366f1;
+                  border:1px solid rgba(99,102,241,0.35);border-radius:8px;
+                  font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;cursor:pointer;
+                  display:flex;align-items:center;gap:6px;"
+                  onmouseover="this.style.background='rgba(99,102,241,0.08)'"
+                  onmouseout="this.style.background='transparent'">
+                  <span>📥</span> Exportar Excel
                 </button>
                 <div style="position:relative;">
                   <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none;">🔍</span>
@@ -1521,6 +1536,57 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
           </div>
         </div>
 
+        <!-- TAB: ÓRDENES DE COMPRA -->
+        <div id="tab-ordenes" class="tab-content">
+          <div style="max-width:860px;margin:0 auto;">
+
+            <!-- KPIs -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+              <div class="kpi-card visible" style="border-top-color:#6366f1;padding:16px 18px;">
+                <div class="kpi-label">Total órdenes</div>
+                <div class="kpi-value" id="oc-total">—</div>
+              </div>
+              <div class="kpi-card visible" style="border-top-color:#f59e0b;padding:16px 18px;">
+                <div class="kpi-label">Borradores</div>
+                <div class="kpi-value" id="oc-borradores" style="color:#f59e0b;">—</div>
+              </div>
+              <div class="kpi-card visible" style="border-top-color:#3b82f6;padding:16px 18px;">
+                <div class="kpi-label">Enviadas</div>
+                <div class="kpi-value" id="oc-enviadas" style="color:#60a5fa;">—</div>
+              </div>
+              <div class="kpi-card visible" style="border-top-color:#10b981;padding:16px 18px;">
+                <div class="kpi-label">Recibidas</div>
+                <div class="kpi-value" id="oc-recibidas" style="color:#34d399;">—</div>
+              </div>
+            </div>
+
+            <!-- Botón nueva orden -->
+            <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
+              <button onclick="abrirNuevaOrden()"
+                style="padding:10px 20px;background:linear-gradient(135deg,#6366f1,#8b5cf6);
+                color:#fff;border:none;border-radius:9px;font-family:'Inter',sans-serif;
+                font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;">
+                ➕ Nueva orden de compra
+              </button>
+            </div>
+
+            <!-- Lista de órdenes -->
+            <div class="table-card visible">
+              <div class="table-header">
+                <span class="table-title">📋 Órdenes de compra</span>
+                <span class="table-count" id="oc-count">0 órdenes</span>
+              </div>
+              <div id="oc-lista" style="padding:16px;">
+                <div style="text-align:center;color:var(--text-3);padding:40px;font-size:13.5px;">
+                  No hay órdenes registradas.<br>
+                  <span style="font-size:12px;">Creá una para empezar.</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
       </div><!-- /#content -->
     </div><!-- /.main-content -->
 
@@ -1578,6 +1644,125 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
   </div>
 
 </div><!-- /.app-body -->
+
+<!-- ══════════════════════════════════════
+     MODAL — NUEVA ORDEN DE COMPRA
+══════════════════════════════════════ -->
+<div id="ocOverlay" onclick="if(event.target===this)cerrarOrden()"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);
+  z-index:600;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;">
+  <div style="background:#1c1a29;border:1px solid #2d2a40;border-radius:16px;
+    width:100%;max-width:580px;margin:auto;box-shadow:0 20px 50px rgba(0,0,0,0.5);">
+
+    <!-- Header -->
+    <div style="padding:18px 22px 14px;border-bottom:1px solid #2d2a40;
+      display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:9px;">
+        <span style="font-size:18px;">📋</span>
+        <div>
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:15px;color:#fff;" id="ocModalTitulo">Nueva orden de compra</div>
+          <div style="font-size:12px;color:#a78bfa;margin-top:1px;" id="ocModalSub">Creá un pedido para un proveedor</div>
+        </div>
+      </div>
+      <button onclick="cerrarOrden()"
+        style="width:28px;height:28px;background:#13111c;border:1px solid #2d2a40;
+        border-radius:7px;color:#a1a1aa;cursor:pointer;font-size:14px;">✕</button>
+    </div>
+
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:14px;">
+      <input type="hidden" id="ocEditId">
+
+      <!-- Proveedor -->
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Proveedor <span style="color:#ef4444;">*</span></div>
+        <input type="text" id="ocProveedor" placeholder="Ej: Trixie, Royal Canin, Purina..."
+          style="width:100%;padding:9px 13px;border:1px solid #2d2a40;border-radius:9px;
+          font-size:13.5px;color:#fff;background:#13111c;outline:none;font-family:'Inter',sans-serif;">
+      </div>
+
+      <!-- Fecha estimada -->
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Fecha estimada de entrega <span style="color:#52525b;font-weight:400;text-transform:none;">(opcional)</span></div>
+        <input type="date" id="ocFechaEstimada"
+          style="width:100%;padding:9px 13px;border:1px solid #2d2a40;border-radius:9px;
+          font-size:13.5px;color:#fff;background:#13111c;outline:none;font-family:'Inter',sans-serif;">
+      </div>
+
+      <!-- Agregar productos -->
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Productos a pedir</div>
+        <div style="display:grid;grid-template-columns:1fr 80px 100px auto;gap:8px;align-items:end;margin-bottom:8px;">
+          <div>
+            <input type="text" id="ocBuscadorProducto" placeholder="Buscar producto del stock..."
+              oninput="filtrarOcProductos()" autocomplete="off"
+              style="width:100%;padding:8px 11px;border:1px solid #2d2a40;border-radius:8px;
+              font-size:13px;color:#fff;background:#13111c;outline:none;font-family:'Inter',sans-serif;">
+            <div id="ocDropdown" style="display:none;position:absolute;z-index:700;
+              background:#1c1a29;border:1px solid #2d2a40;border-radius:8px;
+              max-height:180px;overflow-y:auto;min-width:260px;
+              box-shadow:0 8px 24px rgba(0,0,0,0.5);"></div>
+          </div>
+          <div>
+            <input type="number" id="ocCantidad" placeholder="Cant." min="1" step="1"
+              style="width:100%;padding:8px 10px;border:1px solid #2d2a40;border-radius:8px;
+              font-size:13px;color:#fff;background:#13111c;outline:none;font-family:'Inter',sans-serif;text-align:center;">
+          </div>
+          <div>
+            <input type="number" id="ocPrecioUnit" placeholder="$ unitario" min="0"
+              style="width:100%;padding:8px 10px;border:1px solid #2d2a40;border-radius:8px;
+              font-size:13px;color:#fff;background:#13111c;outline:none;font-family:'Inter',sans-serif;">
+          </div>
+          <button onclick="agregarItemOrden()"
+            style="padding:8px 14px;background:var(--vi-grad);color:#fff;border:none;border-radius:8px;
+            font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;">
+            + Agregar
+          </button>
+        </div>
+        <div id="ocProductoLabel" style="font-size:12px;color:#a78bfa;min-height:16px;margin-bottom:4px;"></div>
+
+        <!-- Carrito de la orden -->
+        <div id="ocCarritoWrap" style="display:none;border:1px solid #2d2a40;border-radius:9px;overflow:hidden;">
+          <div style="background:#13111c;padding:7px 13px;font-size:10.5px;font-weight:700;
+            color:#71717a;text-transform:uppercase;letter-spacing:0.6px;
+            display:flex;justify-content:space-between;border-bottom:1px solid #2d2a40;">
+            <span>Productos en la orden</span>
+            <span id="ocCarritoCount" style="color:#a78bfa;font-weight:800;">0</span>
+          </div>
+          <div id="ocCarritoItems"></div>
+          <div style="padding:10px 14px;border-top:1px solid #2d2a40;background:rgba(99,102,241,0.04);
+            display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12.5px;font-weight:600;color:#71717a;">TOTAL ESTIMADO</span>
+            <span id="ocTotalLabel" style="font-weight:800;font-size:18px;color:#a78bfa;">$0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notas -->
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Notas <span style="color:#52525b;font-weight:400;text-transform:none;">(opcional)</span></div>
+        <textarea id="ocNotas" rows="2" placeholder="Ej: pedir con urgencia, confirmar precio antes..."
+          style="width:100%;padding:9px 13px;border:1px solid #2d2a40;border-radius:9px;
+          font-size:13.5px;color:#fff;background:#13111c;outline:none;font-family:'Inter',sans-serif;
+          resize:vertical;"></textarea>
+      </div>
+
+      <div id="ocError" style="font-size:12.5px;color:#fca5a5;min-height:16px;"></div>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding:0 22px 18px;display:flex;gap:10px;">
+      <button onclick="cerrarOrden()"
+        style="flex:1;padding:11px;background:transparent;color:#a1a1aa;
+        border:1px solid #2d2a40;border-radius:9px;font-family:'Inter',sans-serif;
+        font-weight:600;font-size:13.5px;cursor:pointer;">Cancelar</button>
+      <button id="ocBtnGuardar" onclick="guardarOrden()"
+        style="flex:2;padding:11px;background:linear-gradient(135deg,#6366f1,#8b5cf6);
+        color:#fff;border:none;border-radius:9px;font-family:'Inter',sans-serif;
+        font-weight:700;font-size:13.5px;cursor:pointer;">💾 Guardar orden</button>
+    </div>
+
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════
      MODAL — AJUSTE RÁPIDO DE STOCK
@@ -1857,6 +2042,7 @@ const TAB_META = {
   movimientos:   { title: 'Historial de Movimientos', sub: 'Últimos movimientos registrados' },
   ventas:        { title: 'Ventas',                   sub: 'Facturación y márgenes' },
   relevamiento:  { title: 'Relevamiento de Stock',    sub: 'Conteo inicial desde el depósito' },
+  ordenes:       { title: 'Órdenes de Compra',        sub: 'Gestión de pedidos a proveedores' },
 };
 
 function switchTab(tab, btn) {
@@ -1869,6 +2055,7 @@ function switchTab(tab, btn) {
   if (m.sub)   document.getElementById('topbarSub').textContent   = m.sub;
   if (tab === 'ventas')    loadVentas();
   if (tab === 'dashboard') renderDashboard();
+  if (tab === 'ordenes')   renderOrdenes();
 }
 
 const SHEET_ID         = "1wIvmRNp6W4n4tj6oORNXr-nvbI_6ENGoZhL2vMMag80";
@@ -4618,6 +4805,45 @@ function actualizarRelHistorial() {
     </div>`).join("");
 }
 
+// ── EXPORTAR STOCK A EXCEL ────────────────────────────────────────────────
+function exportarStockExcel() {
+  if (!stockDataGlobal.length) { alert("No hay datos de stock cargados."); return; }
+
+  const fecha = new Date().toLocaleDateString("es-AR").replace(/\//g, "-");
+
+  // Armar datos con encabezados
+  const headers = ["Producto", "Categoría", "Stock Actual", "Mínimo", "Máximo", "Precio ($)", "Estado", "Valor en Stock ($)", "Código"];
+  const rows = stockDataGlobal.map(p => [
+    p.nombre,
+    p.categoria,
+    p.stock,
+    p.minimo,
+    p.maximo,
+    p.precio,
+    p.estado,
+    p.stock * p.precio,
+    p.codigo || ""
+  ]);
+
+  // Fila de totales
+  const valorTotal = stockDataGlobal.reduce((s, p) => s + p.stock * p.precio, 0);
+  rows.push(["TOTAL", "", stockDataGlobal.reduce((s,p)=>s+p.stock,0), "", "", "", "", valorTotal, ""]);
+
+  const wsData = [headers, ...rows];
+  const ws     = XLSX.utils.aoa_to_sheet(wsData);
+
+  // Anchos de columna
+  ws["!cols"] = [
+    {wch:35}, {wch:18}, {wch:14}, {wch:10}, {wch:10},
+    {wch:14}, {wch:12}, {wch:18}, {wch:18}
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Stock");
+
+  XLSX.writeFile(wb, `stock_veterinaria_babys_${fecha}.xlsx`);
+}
+
 // ── MODO ESCÁNER (tabla Stock) ─────────────────────────────────────────────
 let scannerActivo = false;
 
@@ -4733,6 +4959,324 @@ async function guardarAjuste() {
 }
 
 init();
+</script>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+//  MÓDULO ÓRDENES DE COMPRA
+// ════════════════════════════════════════════════════════════════════════════
+
+let ordenesData       = [];   // array de órdenes guardadas en memoria
+let ocCarrito         = [];   // carrito de la orden en edición
+let ocProductoSel     = null; // producto seleccionado en el buscador
+let ocEditando        = null; // id de la orden en edición (null = nueva)
+
+// ── Render principal ──────────────────────────────────────────────────────
+function renderOrdenes() {
+  const total     = ordenesData.length;
+  const borr      = ordenesData.filter(o => o.estado === "Borrador").length;
+  const env       = ordenesData.filter(o => o.estado === "Enviada").length;
+  const rec       = ordenesData.filter(o => o.estado === "Recibida").length;
+
+  document.getElementById("oc-total").textContent     = total;
+  document.getElementById("oc-borradores").textContent = borr;
+  document.getElementById("oc-enviadas").textContent   = env;
+  document.getElementById("oc-recibidas").textContent  = rec;
+  document.getElementById("oc-count").textContent      = total + " orden" + (total !== 1 ? "es" : "");
+
+  const lista = document.getElementById("oc-lista");
+  if (!total) {
+    lista.innerHTML = `<div style="text-align:center;color:var(--text-3);padding:40px;font-size:13.5px;">
+      No hay órdenes registradas.<br><span style="font-size:12px;">Creá una para empezar.</span></div>`;
+    return;
+  }
+
+  lista.innerHTML = [...ordenesData].reverse().map(o => {
+    const estadoColor = o.estado === "Recibida" ? "#34d399" : o.estado === "Enviada" ? "#60a5fa" : "#f59e0b";
+    const estadoBg    = o.estado === "Recibida" ? "rgba(52,211,153,0.1)" : o.estado === "Enviada" ? "rgba(96,165,250,0.1)" : "rgba(245,158,11,0.1)";
+    const estadoBorde = o.estado === "Recibida" ? "rgba(52,211,153,0.3)" : o.estado === "Enviada" ? "rgba(96,165,250,0.3)" : "rgba(245,158,11,0.3)";
+    const total       = o.items.reduce((s, i) => s + i.cantidad * (i.precio || 0), 0);
+    const itemsStr    = o.items.slice(0, 3).map(i => i.producto).join(", ") + (o.items.length > 3 ? " +" + (o.items.length - 3) + " más" : "");
+
+    const btnAvanzar = o.estado === "Borrador"
+      ? `<button onclick="avanzarEstado('${o.id}')" style="padding:5px 12px;background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.3);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">📤 Marcar enviada</button>`
+      : o.estado === "Enviada"
+      ? `<button onclick="recibirOrden('${o.id}')" style="padding:5px 12px;background:rgba(52,211,153,0.1);color:#34d399;border:1px solid rgba(52,211,153,0.3);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">✅ Marcar recibida</button>`
+      : `<span style="font-size:12px;color:#34d399;">✅ Recibida</span>`;
+
+    const btnEditar = o.estado !== "Recibida"
+      ? `<button onclick="editarOrden('${o.id}')" style="padding:5px 10px;background:transparent;color:#a78bfa;border:1px solid rgba(139,92,246,0.3);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">✏️</button>`
+      : "";
+
+    return `
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span style="font-size:13.5px;font-weight:700;color:var(--text);">${o.proveedor}</span>
+            <span style="padding:2px 9px;border-radius:99px;font-size:11px;font-weight:700;
+              color:${estadoColor};background:${estadoBg};border:1px solid ${estadoBorde};">${o.estado}</span>
+          </div>
+          <div style="font-size:12px;color:var(--text-3);">${itemsStr}</div>
+          <div style="font-size:11.5px;color:var(--text-3);margin-top:3px;">
+            ${o.items.length} producto${o.items.length !== 1 ? "s" : ""}
+            ${total > 0 ? " · Total estimado: <strong style='color:var(--text);'>$" + total.toLocaleString("es-AR") + "</strong>" : ""}
+            ${o.fechaEstimada ? " · Entrega: " + o.fechaEstimada : ""}
+          </div>
+          ${o.notas ? `<div style="font-size:11.5px;color:#6b7280;font-style:italic;margin-top:3px;">📝 ${o.notas}</div>` : ""}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+          ${btnAvanzar}
+          ${btnEditar}
+          <button onclick="eliminarOrden('${o.id}')" style="padding:5px 10px;background:transparent;color:#fca5a5;border:1px solid rgba(239,68,68,0.3);border-radius:6px;font-size:12px;cursor:pointer;">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ── CRUD órdenes ──────────────────────────────────────────────────────────
+function abrirNuevaOrden() {
+  ocEditando = null;
+  ocCarrito  = [];
+  ocProductoSel = null;
+  document.getElementById("ocModalTitulo").textContent = "Nueva orden de compra";
+  document.getElementById("ocModalSub").textContent    = "Creá un pedido para un proveedor";
+  document.getElementById("ocProveedor").value      = "";
+  document.getElementById("ocFechaEstimada").value  = "";
+  document.getElementById("ocNotas").value          = "";
+  document.getElementById("ocBuscadorProducto").value = "";
+  document.getElementById("ocCantidad").value       = "";
+  document.getElementById("ocPrecioUnit").value     = "";
+  document.getElementById("ocProductoLabel").textContent = "";
+  document.getElementById("ocError").textContent    = "";
+  renderOcCarrito();
+  document.getElementById("ocOverlay").style.display = "flex";
+  document.getElementById("ocProveedor").focus();
+}
+
+function editarOrden(id) {
+  const o = ordenesData.find(x => x.id === id);
+  if (!o) return;
+  ocEditando = id;
+  ocCarrito  = o.items.map(i => ({...i}));
+  ocProductoSel = null;
+  document.getElementById("ocModalTitulo").textContent = "Editar orden";
+  document.getElementById("ocModalSub").textContent    = o.proveedor;
+  document.getElementById("ocProveedor").value     = o.proveedor;
+  document.getElementById("ocFechaEstimada").value = o.fechaEstimada || "";
+  document.getElementById("ocNotas").value         = o.notas || "";
+  document.getElementById("ocBuscadorProducto").value = "";
+  document.getElementById("ocCantidad").value      = "";
+  document.getElementById("ocPrecioUnit").value    = "";
+  document.getElementById("ocProductoLabel").textContent = "";
+  document.getElementById("ocError").textContent   = "";
+  renderOcCarrito();
+  document.getElementById("ocOverlay").style.display = "flex";
+  document.getElementById("ocProveedor").focus();
+}
+
+function cerrarOrden() {
+  document.getElementById("ocOverlay").style.display = "none";
+  document.getElementById("ocDropdown").style.display = "none";
+}
+
+function guardarOrden() {
+  const proveedor    = document.getElementById("ocProveedor").value.trim();
+  const fechaEst     = document.getElementById("ocFechaEstimada").value;
+  const notas        = document.getElementById("ocNotas").value.trim();
+  const errEl        = document.getElementById("ocError");
+
+  if (!proveedor)         { errEl.textContent = "Ingresá el nombre del proveedor."; return; }
+  if (!ocCarrito.length)  { errEl.textContent = "Agregá al menos un producto."; return; }
+
+  errEl.textContent = "";
+
+  if (ocEditando) {
+    const idx = ordenesData.findIndex(o => o.id === ocEditando);
+    if (idx >= 0) {
+      ordenesData[idx] = { ...ordenesData[idx], proveedor, fechaEstimada: fechaEst, notas, items: [...ocCarrito] };
+    }
+  } else {
+    ordenesData.push({
+      id:             "oc_" + Date.now(),
+      proveedor,
+      estado:         "Borrador",
+      fechaCreacion:  new Date().toLocaleDateString("es-AR"),
+      fechaEstimada:  fechaEst,
+      notas,
+      items:          [...ocCarrito]
+    });
+  }
+
+  guardarOrdenesLocal();
+  cerrarOrden();
+  renderOrdenes();
+}
+
+function avanzarEstado(id) {
+  const o = ordenesData.find(x => x.id === id);
+  if (o && o.estado === "Borrador") { o.estado = "Enviada"; guardarOrdenesLocal(); renderOrdenes(); }
+}
+
+function recibirOrden(id) {
+  const o = ordenesData.find(x => x.id === id);
+  if (!o || o.estado !== "Enviada") return;
+
+  if (!confirm(`¿Confirmar recepción de la orden de ${o.proveedor}?\nEsto sumará el stock de ${o.items.length} producto${o.items.length!==1?"s":""} automáticamente.`)) return;
+
+  // Actualizar cada producto en el Sheet vía Apps Script
+  let pendientes = o.items.length;
+  let errores    = 0;
+
+  o.items.forEach(async item => {
+    try {
+      const fd = new FormData();
+      fd.append("accion",      "movimiento");
+      fd.append("producto",    item.producto);
+      fd.append("tipo",        "ENTRADA");
+      fd.append("cantidad",    item.cantidad);
+      fd.append("responsable", "Orden #" + id.slice(-6));
+      fd.append("observaciones", "Recepción orden de compra — " + o.proveedor);
+      await fetch(APPS_SCRIPT_STOCK_URL, { method: "POST", body: fd });
+    } catch(e) { errores++; }
+    pendientes--;
+    if (pendientes === 0) {
+      o.estado = "Recibida";
+      o.fechaRecepcion = new Date().toLocaleDateString("es-AR");
+      guardarOrdenesLocal();
+      renderOrdenes();
+      setTimeout(init, 1000); // refrescar stock
+      if (errores > 0) alert(`Orden recibida con ${errores} error${errores!==1?"es":""} al actualizar stock. Verificá manualmente.`);
+    }
+  });
+}
+
+function eliminarOrden(id) {
+  if (!confirm("¿Eliminar esta orden? No se puede deshacer.")) return;
+  ordenesData = ordenesData.filter(o => o.id !== id);
+  guardarOrdenesLocal();
+  renderOrdenes();
+}
+
+// ── Persistencia local ────────────────────────────────────────────────────
+function guardarOrdenesLocal() {
+  try { localStorage.setItem("vc_ordenes", JSON.stringify(ordenesData)); } catch(e) {}
+}
+
+function cargarOrdenesLocal() {
+  try {
+    const raw = localStorage.getItem("vc_ordenes");
+    if (raw) ordenesData = JSON.parse(raw);
+  } catch(e) { ordenesData = []; }
+}
+
+// ── Buscador de productos en el modal ─────────────────────────────────────
+function filtrarOcProductos() {
+  const q  = (document.getElementById("ocBuscadorProducto")?.value || "").toLowerCase().trim();
+  const dd = document.getElementById("ocDropdown");
+  if (!dd) return;
+
+  const filtrados = q === ""
+    ? stockDataGlobal.slice(0, 30)
+    : stockDataGlobal.filter(p => p.nombre.toLowerCase().includes(q)).slice(0, 30);
+
+  if (!filtrados.length) {
+    dd.style.display = "block";
+    dd.innerHTML = `<div style="padding:10px 14px;color:var(--text-3);font-size:13px;">Sin resultados</div>`;
+    return;
+  }
+  dd.style.display = "block";
+  dd.innerHTML = filtrados.map((p, i) => `
+    <div class="oc-dd-item" data-idx="${i}"
+      style="padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--border);"
+      onmouseover="this.style.background='var(--card-hover)'"
+      onmouseout="this.style.background='transparent'">
+      <div style="font-size:13px;font-weight:600;color:var(--text);">${p.nombre}</div>
+      <div style="font-size:11px;color:var(--text-3);">${p.categoria} · Stock: ${p.stock}</div>
+    </div>`
+  ).join("");
+  dd._filtrados = filtrados;
+}
+
+document.addEventListener("click", e => {
+  const search = document.getElementById("ocBuscadorProducto");
+  const dd     = document.getElementById("ocDropdown");
+  if (!dd) return;
+  const item = e.target.closest(".oc-dd-item");
+  if (item && dd.contains(item)) {
+    const p = dd._filtrados?.[parseInt(item.dataset.idx)];
+    if (p) elegirOcProducto(p);
+    return;
+  }
+  if (search && !search.contains(e.target) && !dd.contains(e.target)) dd.style.display = "none";
+});
+
+function elegirOcProducto(p) {
+  ocProductoSel = p;
+  document.getElementById("ocDropdown").style.display = "none";
+  document.getElementById("ocBuscadorProducto").value = "";
+  document.getElementById("ocProductoLabel").innerHTML =
+    `<span style="color:#a78bfa;font-weight:600;">✅ ${p.nombre}</span>`;
+  // Pre-cargar precio de costo desde preciosDataGlobal
+  const match = preciosDataGlobal.find(pr =>
+    pr.desc.toLowerCase().includes(p.nombre.toLowerCase().split(" ").slice(0,3).join(" ").toLowerCase())
+  );
+  if (match?.conIVA > 0) document.getElementById("ocPrecioUnit").value = match.conIVA;
+  document.getElementById("ocCantidad").value = "";
+  document.getElementById("ocCantidad").focus();
+}
+
+function agregarItemOrden() {
+  if (!ocProductoSel) { alert("Seleccioná un producto primero."); return; }
+  const cant   = parseFloat(document.getElementById("ocCantidad").value)   || 0;
+  const precio = parseFloat(document.getElementById("ocPrecioUnit").value) || 0;
+  if (cant <= 0) { alert("Ingresá una cantidad mayor a 0."); return; }
+
+  const existe = ocCarrito.find(i => i.producto === ocProductoSel.nombre);
+  if (existe) { existe.cantidad = cant; existe.precio = precio; }
+  else ocCarrito.push({ producto: ocProductoSel.nombre, cantidad: cant, precio });
+
+  ocProductoSel = null;
+  document.getElementById("ocProductoLabel").textContent = "";
+  document.getElementById("ocCantidad").value  = "";
+  document.getElementById("ocPrecioUnit").value = "";
+  renderOcCarrito();
+  document.getElementById("ocBuscadorProducto").focus();
+}
+
+function quitarOcItem(idx) { ocCarrito.splice(idx, 1); renderOcCarrito(); }
+
+function renderOcCarrito() {
+  const wrap  = document.getElementById("ocCarritoWrap");
+  const items = document.getElementById("ocCarritoItems");
+  const total = ocCarrito.reduce((s, i) => s + i.cantidad * (i.precio || 0), 0);
+
+  document.getElementById("ocCarritoCount").textContent = ocCarrito.length;
+  document.getElementById("ocTotalLabel").textContent =
+    "$" + total.toLocaleString("es-AR", { minimumFractionDigits: 0 });
+
+  if (!ocCarrito.length) { wrap.style.display = "none"; items.innerHTML = ""; return; }
+  wrap.style.display = "block";
+  items.innerHTML = ocCarrito.map((item, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;
+      padding:8px 13px;border-top:1px solid var(--border);font-size:13px;gap:8px;"
+      onmouseover="this.style.background='var(--card-hover)'" onmouseout="this.style.background='transparent'">
+      <div style="flex:1;">
+        <div style="font-weight:600;color:var(--text);">${item.producto}</div>
+        <div style="font-size:11.5px;color:var(--text-3);">
+          ${item.cantidad} uds${item.precio > 0 ? " · $" + item.precio.toLocaleString("es-AR") + " c/u = $" + (item.cantidad * item.precio).toLocaleString("es-AR") : ""}
+        </div>
+      </div>
+      <button onclick="quitarOcItem(${i})"
+        style="width:24px;height:24px;background:transparent;color:#fca5a5;
+        border:1px solid rgba(239,68,68,0.3);border-radius:5px;cursor:pointer;font-size:12px;">✕</button>
+    </div>`
+  ).join("");
+}
+
+// Cargar órdenes al iniciar
+cargarOrdenesLocal();
 </script>
 
 <script>
