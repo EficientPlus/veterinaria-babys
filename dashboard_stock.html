@@ -1174,6 +1174,7 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
                     <th>Mínimo</th>
                     <th>Nivel</th>
                     <th>Estado</th>
+                    <th style="width:80px;"></th>
                   </tr>
                 </thead>
                 <tbody id="stockBody"></tbody>
@@ -1557,6 +1558,84 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
 </div><!-- /.app-body -->
 
 <!-- ══════════════════════════════════════
+     MODAL — AJUSTE RÁPIDO DE STOCK
+══════════════════════════════════════ -->
+<div id="ajusteOverlay" onclick="if(event.target===this)cerrarAjuste()"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);
+  z-index:500;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#1c1a29;border:1px solid #2d2a40;border-radius:16px;
+    width:100%;max-width:420px;box-shadow:0 20px 50px rgba(0,0,0,0.5);">
+
+    <div style="padding:18px 22px 14px;border-bottom:1px solid #2d2a40;
+      display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:9px;">
+        <span style="font-size:18px;">✏️</span>
+        <div>
+          <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:15px;color:#fff;">Ajustar stock</div>
+          <div id="ajusteNombre" style="font-size:12px;color:#a78bfa;margin-top:1px;font-weight:600;"></div>
+        </div>
+      </div>
+      <button onclick="cerrarAjuste()"
+        style="width:28px;height:28px;background:#13111c;border:1px solid #2d2a40;
+        border-radius:7px;color:#a1a1aa;cursor:pointer;font-size:14px;">✕</button>
+    </div>
+
+    <div style="padding:18px 22px;display:flex;flex-direction:column;gap:13px;">
+      <input type="hidden" id="ajusteProducto">
+
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">
+          Cantidad real en depósito <span style="color:#ef4444;">*</span>
+        </div>
+        <input type="number" id="ajusteCantidad" min="0" step="1" placeholder="Ej: 12"
+          onkeydown="if(event.key==='Enter')guardarAjuste()"
+          style="width:100%;padding:10px 13px;border:1px solid #2d2a40;border-radius:9px;
+          font-size:15px;font-weight:700;color:#fff;background:#13111c;outline:none;
+          font-family:'Inter',sans-serif;text-align:center;">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Stock mínimo</div>
+          <input type="number" id="ajusteMinimo" min="0" step="1" placeholder="Ej: 5"
+            style="width:100%;padding:9px 12px;border:1px solid #2d2a40;border-radius:9px;
+            font-size:14px;color:#fff;background:#13111c;outline:none;font-family:'Inter',sans-serif;">
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">Stock máximo</div>
+          <input type="number" id="ajusteMaximo" min="0" step="1" placeholder="Ej: 30"
+            style="width:100%;padding:9px 12px;border:1px solid #2d2a40;border-radius:9px;
+            font-size:14px;color:#fff;background:#13111c;outline:none;font-family:'Inter',sans-serif;">
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:6px;">
+          Motivo <span style="color:#52525b;font-weight:400;text-transform:none;">(opcional)</span>
+        </div>
+        <input type="text" id="ajusteMotivo" placeholder="Ej: corrección post-relevamiento, conteo físico..."
+          style="width:100%;padding:9px 13px;border:1px solid #2d2a40;border-radius:9px;
+          font-size:13.5px;color:#fff;background:#13111c;outline:none;font-family:'Inter',sans-serif;">
+      </div>
+
+      <div id="ajusteError" style="font-size:12.5px;color:#fca5a5;min-height:16px;"></div>
+    </div>
+
+    <div style="padding:0 22px 18px;display:flex;gap:10px;">
+      <button onclick="cerrarAjuste()"
+        style="flex:1;padding:11px;background:transparent;color:#a1a1aa;
+        border:1px solid #2d2a40;border-radius:9px;font-family:'Inter',sans-serif;
+        font-weight:600;font-size:13.5px;cursor:pointer;">Cancelar</button>
+      <button id="btnGuardarAjuste" onclick="guardarAjuste()"
+        style="flex:2;padding:11px;background:linear-gradient(135deg,#6366f1,#8b5cf6);
+        color:#fff;border:none;border-radius:9px;font-family:'Inter',sans-serif;
+        font-weight:700;font-size:13.5px;cursor:pointer;">✅ Guardar ajuste</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
      MODAL — REGISTRAR MOVIMIENTO
 ══════════════════════════════════════ -->
 <div class="modal-overlay" id="modalOverlay" onclick="cerrarModalSiAfuera(event)">
@@ -1898,7 +1977,17 @@ function renderStock(rows) {
       <td><span class="stock-num" style="color:${barColor}">${stock}</span></td>
       <td style="color:#71717a;font-weight:600;">${minimo}</td>
       <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${barColor}"></div></div><span class="progress-pct">${pct}%</span></div></td>
-      <td><span class="status-pill ${estadoClass}">${estadoIcon} ${estadoLabel}</span></td>`;
+      <td><span class="status-pill ${estadoClass}">${estadoIcon} ${estadoLabel}</span></td>
+      <td style="text-align:center;">
+        <button onclick="abrirAjuste('${nombre.replace(/'/g,"\\'")}',${stock},${minimo},${maximo})"
+          style="padding:4px 10px;font-size:11.5px;font-weight:600;border-radius:6px;cursor:pointer;
+          background:transparent;color:#a78bfa;border:1px solid rgba(139,92,246,0.35);
+          font-family:'Inter',sans-serif;transition:all 0.2s;"
+          onmouseover="this.style.background='rgba(139,92,246,0.1)'"
+          onmouseout="this.style.background='transparent'">
+          ✏️ Ajustar
+        </button>
+      </td>`;
     tbody.appendChild(tr);
     todosLosProductos.push(tr);
   }
@@ -4475,6 +4564,53 @@ function actualizarRelHistorial() {
         </button>
       </div>
     </div>`).join("");
+}
+
+// ── AJUSTE RÁPIDO DE STOCK ────────────────────────────────────────────────
+function abrirAjuste(nombre, stockActual, minimo, maximo) {
+  document.getElementById("ajusteNombre").textContent    = nombre;
+  document.getElementById("ajusteProducto").value        = nombre;
+  document.getElementById("ajusteCantidad").value        = stockActual;
+  document.getElementById("ajusteMinimo").value          = minimo  || "";
+  document.getElementById("ajusteMaximo").value          = maximo  || "";
+  document.getElementById("ajusteMotivo").value          = "";
+  document.getElementById("ajusteError").textContent     = "";
+  document.getElementById("ajusteOverlay").style.display = "flex";
+  document.getElementById("ajusteCantidad").focus();
+  document.getElementById("ajusteCantidad").select();
+}
+
+function cerrarAjuste() {
+  document.getElementById("ajusteOverlay").style.display = "none";
+}
+
+async function guardarAjuste() {
+  const nombre   = document.getElementById("ajusteProducto").value;
+  const cantidad = parseFloat(document.getElementById("ajusteCantidad").value);
+  const minimo   = parseFloat(document.getElementById("ajusteMinimo").value)  || 0;
+  const maximo   = parseFloat(document.getElementById("ajusteMaximo").value)  || 0;
+  const motivo   = document.getElementById("ajusteMotivo").value.trim() || "Ajuste manual";
+  const errEl    = document.getElementById("ajusteError");
+  if (isNaN(cantidad) || cantidad < 0) { errEl.textContent = "Ingresá una cantidad válida (≥ 0)."; return; }
+  const btn = document.getElementById("btnGuardarAjuste");
+  btn.disabled = true; btn.textContent = "Guardando..."; errEl.textContent = "";
+  try {
+    const fd = new FormData();
+    fd.append("accion",        "ajuste_stock");
+    fd.append("producto",      nombre);
+    fd.append("cantidad",      cantidad);
+    fd.append("minimo",        minimo);
+    fd.append("maximo",        maximo);
+    fd.append("observaciones", motivo);
+    const res  = await fetch(APPS_SCRIPT_STOCK_URL, { method:"POST", body:fd });
+    const data = await res.json();
+    if (data.ok) { cerrarAjuste(); setTimeout(init, 800); }
+    else errEl.textContent = "Error: " + (data.msg || "No se pudo guardar.");
+  } catch(e) {
+    errEl.textContent = "Error de conexión.";
+  } finally {
+    btn.disabled = false; btn.textContent = "✅ Guardar ajuste";
+  }
 }
 
 init();
