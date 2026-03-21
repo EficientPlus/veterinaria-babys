@@ -2987,7 +2987,7 @@ function actualizarDescuentoCuotas() {
     const totalDesc = Math.round(totalBase * (1 - desc / 100));
     const ahorro    = totalBase - totalDesc;
     preview.style.display = "block";
-    preview.textContent   = `Total con descuento: $${totalDesc.toLocaleString("es-AR")} (ahorrás $${ahorro.toLocaleString("es-AR")})`;
+    preview.textContent   = `Total con descuento: $${totalDesc.toLocaleString("es-AR")}`;
   } else {
     const cuotas  = parseInt(document.getElementById("cuotasNum")?.value)      || 1;
     const recargo = parseFloat(document.getElementById("cuotasRecargo")?.value) || 0;
