@@ -1691,15 +1691,29 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
       <!-- Agregar productos -->
       <div>
         <div style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Productos a pedir</div>
+
+        <!-- Escáner de código de barras -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;
+          background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.25);
+          border-radius:9px;padding:7px 12px;">
+          <span style="font-size:14px;">📷</span>
+          <input type="text" id="ocScannerInput"
+            placeholder="Escaneá el código de barras para agregar el producto y proveedor automáticamente..."
+            onkeydown="onOcScannerKey(event)" autocomplete="off"
+            style="flex:1;background:transparent;border:none;outline:none;
+            color:#86efac;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;">
+          <span id="ocScannerStatus" style="font-size:11px;color:#6b7280;white-space:nowrap;">o buscá abajo</span>
+        </div>
+
         <div style="display:grid;grid-template-columns:1fr 80px 100px auto;gap:8px;align-items:end;margin-bottom:8px;">
-          <div>
+          <div style="position:relative;">
             <input type="text" id="ocBuscadorProducto" placeholder="Buscar producto del stock..."
-              oninput="filtrarOcProductos()" autocomplete="off"
+              oninput="filtrarOcProductos()" onfocus="filtrarOcProductos()" autocomplete="off"
               style="width:100%;padding:8px 11px;border:1px solid #2d2a40;border-radius:8px;
               font-size:13px;color:#fff;background:#13111c;outline:none;font-family:'Inter',sans-serif;">
-            <div id="ocDropdown" style="display:none;position:absolute;z-index:700;
+            <div id="ocDropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:700;
               background:#1c1a29;border:1px solid #2d2a40;border-radius:8px;
-              max-height:180px;overflow-y:auto;min-width:260px;
+              max-height:180px;overflow-y:auto;
               box-shadow:0 8px 24px rgba(0,0,0,0.5);"></div>
           </div>
           <div>
@@ -5169,6 +5183,38 @@ function cargarOrdenesLocal() {
     const raw = localStorage.getItem("vc_ordenes");
     if (raw) ordenesData = JSON.parse(raw);
   } catch(e) { ordenesData = []; }
+}
+
+// ── Escáner en modal de órdenes ───────────────────────────────────────────
+function onOcScannerKey(e) {
+  if (e.key !== "Enter") return;
+  const codigo   = document.getElementById("ocScannerInput").value.trim();
+  const statusEl = document.getElementById("ocScannerStatus");
+  document.getElementById("ocScannerInput").value = "";
+  if (!codigo) return;
+
+  const producto = stockDataGlobal.find(p => p.codigo && p.codigo === codigo);
+  if (producto) {
+    // Auto-completar proveedor si el campo está vacío
+    const provInput = document.getElementById("ocProveedor");
+    if (!provInput.value.trim() && producto.categoria) {
+      // Buscar el proveedor en preciosDataGlobal
+      const match = preciosDataGlobal.find(pr =>
+        pr.desc.toLowerCase().includes(producto.nombre.toLowerCase().split(" ").slice(0,3).join(" ").toLowerCase())
+      );
+      if (match?.proveedor) provInput.value = match.proveedor;
+    }
+    // Seleccionar el producto
+    elegirOcProducto(producto);
+    statusEl.style.color = "#86efac";
+    statusEl.textContent = "✅ " + producto.nombre.slice(0, 20) + (producto.nombre.length > 20 ? "…" : "");
+    setTimeout(() => { statusEl.style.color = "#6b7280"; statusEl.textContent = "o buscá abajo"; }, 2500);
+    document.getElementById("ocCantidad").focus();
+  } else {
+    statusEl.style.color = "#fca5a5";
+    statusEl.textContent = "❌ Código no encontrado";
+    setTimeout(() => { statusEl.style.color = "#6b7280"; statusEl.textContent = "o buscá abajo"; }, 2500);
+  }
 }
 
 // ── Buscador de productos en el modal ─────────────────────────────────────
