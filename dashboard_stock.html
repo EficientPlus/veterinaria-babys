@@ -1922,7 +1922,6 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
                 <input type="text" class="product-search-input" id="productSearch"
                   placeholder="Buscá por nombre, categoría o proveedor..."
                   oninput="filtrarProductos()"
-                  onfocus="abrirDropdown()"
                   autocomplete="off">
                 <div class="product-dropdown" id="productDropdown"></div>
               </div>
@@ -1951,108 +1950,133 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
             <div id="carritoItems"></div>
           </div>
 
-          <!-- Precios de venta (solo visible cuando tipo = SALIDA) -->
-          <div id="seccion-precios-venta" style="display:none;margin:4px 0 8px;padding:14px;border-radius:10px;border:1px solid var(--border);background:var(--card);">
-            <div style="font-weight:600;margin-bottom:10px;color:var(--text);display:flex;align-items:center;gap:6px;font-size:13.5px;">
-              💰 Precios de venta
-              <span style="font-size:11px;font-weight:400;color:var(--text-3);">— costo sugerido desde lista de proveedores</span>
-            </div>
-            <div style="overflow-x:auto;">
-              <table style="width:100%;border-collapse:collapse;font-size:13px;">
-                <thead>
-                  <tr style="color:var(--text-3);">
-                    <th style="text-align:left;padding:4px 6px;font-weight:500;">Producto</th>
-                    <th style="padding:4px 6px;font-weight:500;text-align:center;">Cant.</th>
-                <th style="padding:4px 6px;font-weight:500;text-align:center;">Costo u. $</th>
-                    <th style="padding:4px 6px;font-weight:500;text-align:center;color:#f472b6;">Total cobrado $ *</th>
-                  </tr>
-                </thead>
-                <tbody id="tabla-precios-body">
-                  <tr><td colspan="4" style="color:var(--text-3);padding:6px;font-size:12px;">Agregá productos al carrito</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <!-- PRECIOS — aparece solo cuando hay productos en el carrito -->
+          <div id="seccion-precios-venta" style="display:none;">
 
-          <!-- Medio de pago (solo visible cuando tipo = SALIDA) -->
-          <div id="seccion-medio-pago" style="display:none;margin:0 0 8px;">
-            <div class="form-label">Medio de pago</div>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;" id="medioPagoGrid">
-              <button type="button" class="medio-pill active" data-medio="Efectivo"
-                onclick="seleccionarMedio(this)"
-                style="padding:9px 6px;border-radius:8px;border:1px solid #6366f1;background:rgba(99,102,241,0.12);color:#a78bfa;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;">
-                💵 Efectivo
-              </button>
-              <button type="button" class="medio-pill" data-medio="Tarjeta"
-                onclick="seleccionarMedio(this)"
-                style="padding:9px 6px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;">
-                💳 Tarjeta
-              </button>
-              <button type="button" class="medio-pill" data-medio="Mercado Pago"
-                onclick="seleccionarMedio(this)"
-                style="padding:9px 6px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;">
-                📱 Mercado Pago
-              </button>
-              <button type="button" class="medio-pill" data-medio="Transferencia"
-                onclick="seleccionarMedio(this)"
-                style="padding:9px 6px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;">
-                🏦 Transf.
-              </button>
-            </div>
-
-            <!-- Cuotas -->
-            <div style="margin-top:10px;padding:12px 14px;border:1px solid var(--border);border-radius:9px;background:rgba(99,102,241,0.04);">
-              <div style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;">
-                Cuotas <span style="color:#52525b;font-weight:400;text-transform:none;">(opcional — dejar en 1 si es contado)</span>
+            <!-- Tabla precios -->
+            <div style="margin:4px 0 12px;padding:14px;border-radius:10px;border:1px solid var(--border);background:var(--card);">
+              <div style="font-weight:600;margin-bottom:10px;color:var(--text);display:flex;align-items:center;gap:6px;font-size:13.5px;">
+                💰 Precios de venta
+                <span style="font-size:11px;font-weight:400;color:var(--text-3);">— costo sugerido desde lista de proveedores</span>
               </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;">
-                <div>
-                  <div style="font-size:11px;color:#71717a;margin-bottom:4px;">Cantidad de cuotas</div>
-                  <input type="number" id="cuotasNum" min="1" step="1" value="1"
-                    oninput="actualizarCuotas()"
-                    style="width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:8px;
-                    background:var(--card);color:var(--text);font-size:14px;font-weight:700;
-                    font-family:'Inter',sans-serif;outline:none;text-align:center;">
+              <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                  <thead>
+                    <tr style="color:var(--text-3);">
+                      <th style="text-align:left;padding:4px 6px;font-weight:500;">Producto</th>
+                      <th style="padding:4px 6px;font-weight:500;text-align:center;">Cant.</th>
+                      <th style="padding:4px 6px;font-weight:500;text-align:center;">Costo u. $</th>
+                      <th style="padding:4px 6px;font-weight:500;text-align:center;color:#f472b6;">Total cobrado $ *</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tabla-precios-body">
+                    <tr><td colspan="4" style="color:var(--text-3);padding:6px;font-size:12px;">Agregá productos al carrito</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Medio de pago -->
+            <div id="seccion-medio-pago" style="margin:0 0 8px;">
+              <div class="form-label">Medio de pago</div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;" id="medioPagoGrid">
+                <button type="button" class="medio-pill active" data-medio="Efectivo"
+                  onclick="seleccionarMedio(this)"
+                  style="padding:9px 6px;border-radius:8px;border:1px solid #6366f1;background:rgba(99,102,241,0.12);color:#a78bfa;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;">
+                  💵 Efectivo
+                </button>
+                <button type="button" class="medio-pill" data-medio="Tarjeta"
+                  onclick="seleccionarMedio(this)"
+                  style="padding:9px 6px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;">
+                  💳 Tarjeta
+                </button>
+                <button type="button" class="medio-pill" data-medio="Mercado Pago"
+                  onclick="seleccionarMedio(this)"
+                  style="padding:9px 6px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;">
+                  📱 Mercado Pago
+                </button>
+                <button type="button" class="medio-pill" data-medio="Transferencia"
+                  onclick="seleccionarMedio(this)"
+                  style="padding:9px 6px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-2);font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;">
+                  🏦 Transf.
+                </button>
+              </div>
+
+              <!-- Descuento (Efectivo/Transferencia) / Cuotas (Tarjeta/MP) -->
+              <div id="seccion-cuotas-descuento" style="margin-top:10px;display:none;">
+                <!-- DESCUENTO -->
+                <div id="bloque-descuento" style="display:none;padding:10px 13px;border:1px solid rgba(16,185,129,0.25);border-radius:9px;background:rgba(16,185,129,0.05);">
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:12px;font-weight:600;color:#6b7280;white-space:nowrap;">💵 Descuento %</span>
+                    <input type="number" id="descuentoPct" min="0" max="100" step="0.5" value="0"
+                      oninput="actualizarDescuentoCuotas()"
+                      style="width:70px;padding:6px 10px;border:1px solid var(--border);border-radius:7px;
+                      background:var(--card);color:var(--text);font-size:14px;font-weight:700;
+                      font-family:'Inter',sans-serif;outline:none;text-align:center;">
+                    <div id="descuentoPreview" style="flex:1;display:none;font-size:13px;color:#34d399;font-weight:600;"></div>
+                  </div>
                 </div>
-                <div>
-                  <div style="font-size:11px;color:#71717a;margin-bottom:4px;">Recargo % <span style="color:#52525b;">(0 = sin interés)</span></div>
-                  <input type="number" id="cuotasRecargo" min="0" step="0.1" value="0"
-                    oninput="actualizarCuotas()"
-                    style="width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:8px;
-                    background:var(--card);color:var(--text);font-size:14px;font-weight:700;
-                    font-family:'Inter',sans-serif;outline:none;text-align:center;">
+                <!-- CUOTAS -->
+                <div id="bloque-cuotas" style="display:none;padding:10px 13px;border:1px solid rgba(99,102,241,0.25);border-radius:9px;background:rgba(99,102,241,0.04);">
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <span style="font-size:12px;font-weight:600;color:#6b7280;white-space:nowrap;">💳 Cuotas</span>
+                    <input type="number" id="cuotasNum" min="1" step="1" value="1"
+                      oninput="actualizarDescuentoCuotas()"
+                      style="width:60px;padding:6px 10px;border:1px solid var(--border);border-radius:7px;
+                      background:var(--card);color:var(--text);font-size:14px;font-weight:700;
+                      font-family:'Inter',sans-serif;outline:none;text-align:center;">
+                    <span style="font-size:12px;color:#6b7280;">Recargo %</span>
+                    <input type="number" id="cuotasRecargo" min="0" step="0.1" value="0"
+                      oninput="actualizarDescuentoCuotas()"
+                      style="width:60px;padding:6px 10px;border:1px solid var(--border);border-radius:7px;
+                      background:var(--card);color:var(--text);font-size:14px;font-weight:700;
+                      font-family:'Inter',sans-serif;outline:none;text-align:center;">
+                    <div id="cuotasPreview" style="display:none;font-size:12.5px;color:#a78bfa;font-weight:600;flex:1;"></div>
+                  </div>
                 </div>
               </div>
-              <!-- Preview cuotas -->
-              <div id="cuotasPreview" style="display:none;padding:8px 12px;border-radius:7px;
-                background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);
-                font-size:13px;color:#a78bfa;font-weight:600;text-align:center;">
+            </div>
+
+            <!-- Responsable -->
+            <div class="form-group">
+              <label class="form-label" for="movResponsable">Responsable</label>
+              <select class="form-control" id="movResponsable">
+                <option value="">— Seleccioná —</option>
+              </select>
+            </div>
+
+            <!-- Opciones avanzadas (acordeón) -->
+            <div style="margin-top:4px;">
+              <button type="button" onclick="toggleOpcionesAvanzadas()"
+                style="width:100%;padding:8px 12px;background:transparent;border:1px dashed var(--border);
+                border-radius:8px;color:var(--text-3);font-size:12.5px;font-weight:600;cursor:pointer;
+                font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:6px;
+                transition:all 0.2s;" id="btnOpcionesAvanzadas">
+                <span id="iconOpcionesAvanzadas">▸</span> Opciones avanzadas (email · observaciones)
+              </button>
+              <div id="seccionOpcionesAvanzadas" style="display:none;padding-top:10px;display:flex;flex-direction:column;gap:10px;">
+
+                <!-- Email cliente -->
+                <div id="seccion-email-cliente">
+                  <label class="form-label" for="movEmailCliente">
+                    Email del cliente <span style="color:var(--gray-mid);font-weight:400;text-transform:none;">(opcional — para enviar comprobante)</span>
+                  </label>
+                  <input type="text" class="form-control" id="movEmailCliente"
+                    placeholder="cliente@email.com" autocomplete="off">
+                </div>
+
+                <!-- Observaciones -->
+                <div>
+                  <label class="form-label" for="movObs">
+                    Observaciones <span style="color:var(--gray-mid);font-weight:400;text-transform:none;">(opcional)</span>
+                  </label>
+                  <input type="text" class="form-control" id="movObs"
+                    placeholder="Ej: pedido semanal, venta con receta...">
+                </div>
+
               </div>
             </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="movResponsable">Responsable</label>
-            <select class="form-control" id="movResponsable">
-              <option value="">— Seleccioná —</option>
-            </select>
-          </div>
 
-          <!-- Email cliente (para comprobante) -->
-          <div id="seccion-email-cliente" style="display:none;">
-            <label class="form-label" for="movEmailCliente" style="display:flex;justify-content:space-between;">
-              <span>Email del cliente <span style="color:var(--gray-mid);font-weight:400;text-transform:none;">(opcional)</span></span>
-            </label>
-            <input type="text" class="form-control" id="movEmailCliente"
-              placeholder="cliente@email.com" autocomplete="off">
-          </div>
-
-          <!-- Observaciones -->
-          <div class="form-group">
-            <label class="form-label" for="movObs">
-              Observaciones <span style="color:var(--gray-mid);font-weight:400;text-transform:none;">(opcional)</span>
-            </label>
-            <input type="text" class="form-control" id="movObs"
-              placeholder="Ej: pedido semanal, venta con receta...">
           </div>
 
         </div>
@@ -2811,23 +2835,34 @@ function abrirModal() {
   document.getElementById("movResponsable").value = "";
   document.getElementById("movObs").value = "";
   document.getElementById("productDropdown").classList.remove("open");
-  // Reset cuotas
+  // Reset cuotas/descuento
   const cuotasNumEl = document.getElementById("cuotasNum");
   const cuotasRecEl = document.getElementById("cuotasRecargo");
   const cuotasPrev  = document.getElementById("cuotasPreview");
+  const descPctEl   = document.getElementById("descuentoPct");
+  const descPrev    = document.getElementById("descuentoPreview");
   if (cuotasNumEl) cuotasNumEl.value = "1";
   if (cuotasRecEl) cuotasRecEl.value = "0";
-  if (cuotasPrev)  cuotasPrev.style.display = "none";
+  if (cuotasPrev)  cuotasPrev.style.display  = "none";
+  if (descPctEl)   descPctEl.value  = "0";
+  if (descPrev)    descPrev.style.display   = "none";
+  actualizarBloqueFinanciero();
   renderCarrito();
   document.getElementById("modalForm").style.display = "";
   document.getElementById("modalSuccess").classList.remove("show");
   document.getElementById("btnSubmitMov").disabled = false;
   document.getElementById("btnSubmitTxt").textContent = "✅ Guardar movimiento";
-  // Reset sección precios
+
+  // Ocultar sección de precios hasta que haya productos
   const secPV = document.getElementById("seccion-precios-venta");
   if (secPV) secPV.style.display = "none";
-  const secMP = document.getElementById("seccion-medio-pago");
-  if (secMP) secMP.style.display = "none";
+
+  // Reset acordeón opciones avanzadas
+  const secOpc = document.getElementById("seccionOpcionesAvanzadas");
+  const iconOpc = document.getElementById("iconOpcionesAvanzadas");
+  if (secOpc) secOpc.style.display = "none";
+  if (iconOpc) iconOpc.textContent = "▸";
+
   // Reset medio de pago a Efectivo
   document.querySelectorAll(".medio-pill").forEach((b, i) => {
     if (i === 0) {
@@ -2839,14 +2874,19 @@ function abrirModal() {
     }
   });
 
-  // Como el tipo es siempre SALIDA/Venta, mostrar campos de venta directamente
-  const secPV2 = document.getElementById("seccion-precio-venta");
-  if (secPV2) secPV2.style.display = "block";
-  const secMP2 = document.getElementById("seccion-medio-pago");
-  if (secMP2) secMP2.style.display = "block";
-  const secEmail2 = document.getElementById("seccion-email-cliente");
-  if (secEmail2) secEmail2.style.display = "block";
-  actualizarTablaPrecios && actualizarTablaPrecios();
+  // Reset cuotas/descuento
+  const cuotasNumEl = document.getElementById("cuotasNum");
+  const cuotasRecEl = document.getElementById("cuotasRecargo");
+  const cuotasPrev  = document.getElementById("cuotasPreview");
+  const descPctEl   = document.getElementById("descuentoPct");
+  const descPrev    = document.getElementById("descuentoPreview");
+  if (cuotasNumEl) cuotasNumEl.value = "1";
+  if (cuotasRecEl) cuotasRecEl.value = "0";
+  if (cuotasPrev)  cuotasPrev.style.display  = "none";
+  if (descPctEl)   descPctEl.value  = "0";
+  if (descPrev)    descPrev.style.display   = "none";
+  const secCD = document.getElementById("seccion-cuotas-descuento");
+  if (secCD) secCD.style.display = "none";
 
   document.getElementById("modalOverlay").classList.add("open");
   document.body.style.overflow = "hidden";
@@ -2863,6 +2903,15 @@ function cerrarModalSiAfuera(e) {
   if (e.target === document.getElementById("modalOverlay")) cerrarModal();
 }
 
+function toggleOpcionesAvanzadas() {
+  const sec  = document.getElementById("seccionOpcionesAvanzadas");
+  const icon = document.getElementById("iconOpcionesAvanzadas");
+  if (!sec) return;
+  const abierto = sec.style.display !== "none" && sec.style.display !== "";
+  sec.style.display  = abierto ? "none" : "flex";
+  if (icon) icon.textContent = abierto ? "▸" : "▾";
+}
+
 function seleccionarMedio(btn) {
   document.querySelectorAll(".medio-pill").forEach(b => {
     b.style.borderColor = "var(--border)";
@@ -2874,53 +2923,89 @@ function seleccionarMedio(btn) {
   btn.style.background  = "rgba(99,102,241,0.12)";
   btn.style.color       = "#a78bfa";
   btn.classList.add("active");
-  actualizarCuotas();
+  actualizarBloqueFinanciero();
+}
+
+function getMedioBase() {
+  const active = document.querySelector(".medio-pill.active");
+  return active ? active.dataset.medio : "Efectivo";
 }
 
 function getMedioPago() {
-  const active   = document.querySelector(".medio-pill.active");
-  const base     = active ? active.dataset.medio : "Efectivo";
-  const cuotas   = parseInt(document.getElementById("cuotasNum")?.value) || 1;
-  const recargo  = parseFloat(document.getElementById("cuotasRecargo")?.value) || 0;
+  const base = getMedioBase();
+  if (base === "Efectivo" || base === "Transferencia") {
+    const desc = parseFloat(document.getElementById("descuentoPct")?.value) || 0;
+    if (desc > 0) return `${base} — ${desc}% descuento`;
+    return base;
+  }
+  const cuotas  = parseInt(document.getElementById("cuotasNum")?.value)      || 1;
+  const recargo = parseFloat(document.getElementById("cuotasRecargo")?.value) || 0;
   if (cuotas <= 1 && recargo === 0) return base;
   const recargoStr = recargo > 0 ? ` +${recargo}%` : " sin interés";
   return `${base} — ${cuotas} cuotas${recargoStr}`;
 }
 
-// Devuelve el factor multiplicador según el recargo (ej: 15% → 1.15)
+// Factor que se aplica al precio final (descuento = < 1, recargo = > 1)
 function getCuotasFactor() {
+  const base = getMedioBase();
+  if (base === "Efectivo" || base === "Transferencia") {
+    const desc = parseFloat(document.getElementById("descuentoPct")?.value) || 0;
+    return 1 - (desc / 100);
+  }
   const recargo = parseFloat(document.getElementById("cuotasRecargo")?.value) || 0;
   return 1 + (recargo / 100);
 }
 
-function actualizarCuotas() {
-  const cuotas  = parseInt(document.getElementById("cuotasNum")?.value)      || 1;
-  const recargo = parseFloat(document.getElementById("cuotasRecargo")?.value) || 0;
-  const preview = document.getElementById("cuotasPreview");
-  if (!preview) return;
+// Muestra u oculta los bloques según el medio seleccionado
+function actualizarBloqueFinanciero() {
+  const base       = getMedioBase();
+  const seccion    = document.getElementById("seccion-cuotas-descuento");
+  const bloqDesc   = document.getElementById("bloque-descuento");
+  const bloqCuotas = document.getElementById("bloque-cuotas");
+  if (!seccion) return;
 
-  // Calcular total actual del carrito sumando los precios de venta ingresados
+  const esEfectivo    = base === "Efectivo" || base === "Transferencia";
+  const esTarjeta     = base === "Tarjeta" || base === "Mercado Pago";
+
+  seccion.style.display    = "block";
+  bloqDesc.style.display   = esEfectivo ? "block" : "none";
+  bloqCuotas.style.display = esTarjeta  ? "block" : "none";
+
+  actualizarDescuentoCuotas();
+}
+
+function actualizarCuotas() { actualizarDescuentoCuotas(); }
+
+function actualizarDescuentoCuotas() {
+  const base = getMedioBase();
+
+  // Calcular total base del carrito
   let totalBase = 0;
   carrito.forEach((item, i) => {
     const pv = parseFloat(document.getElementById(`pv-venta-${i}`)?.value) || 0;
     totalBase += pv;
   });
 
-  if (cuotas <= 1 && recargo === 0) {
-    preview.style.display = "none";
-    return;
-  }
-
-  const factor       = 1 + (recargo / 100);
-  const totalConRec  = Math.round(totalBase * factor);
-  const valorCuota   = totalBase > 0 ? Math.round(totalConRec / cuotas) : 0;
-  const recargoStr   = recargo > 0 ? ` (recargo ${recargo}%)` : " sin interés";
-
-  preview.style.display = "block";
-  if (totalBase > 0) {
-    preview.textContent = `${cuotas} cuota${cuotas!==1?"s":""} de $${valorCuota.toLocaleString("es-AR")}${recargoStr} — Total: $${totalConRec.toLocaleString("es-AR")}`;
+  if (base === "Efectivo" || base === "Transferencia") {
+    const desc    = parseFloat(document.getElementById("descuentoPct")?.value) || 0;
+    const preview = document.getElementById("descuentoPreview");
+    if (!preview) return;
+    if (desc <= 0 || totalBase <= 0) { preview.style.display = "none"; return; }
+    const totalDesc = Math.round(totalBase * (1 - desc / 100));
+    const ahorro    = totalBase - totalDesc;
+    preview.style.display = "block";
+    preview.textContent   = `Total con descuento: $${totalDesc.toLocaleString("es-AR")} (ahorrás $${ahorro.toLocaleString("es-AR")})`;
   } else {
-    preview.textContent = `${cuotas} cuota${cuotas!==1?"s":""}${recargoStr}`;
+    const cuotas  = parseInt(document.getElementById("cuotasNum")?.value)      || 1;
+    const recargo = parseFloat(document.getElementById("cuotasRecargo")?.value) || 0;
+    const preview = document.getElementById("cuotasPreview");
+    if (!preview) return;
+    if ((cuotas <= 1 && recargo === 0) || totalBase <= 0) { preview.style.display = "none"; return; }
+    const totalConRec = Math.round(totalBase * (1 + recargo / 100));
+    const valorCuota  = Math.round(totalConRec / cuotas);
+    const recargoStr  = recargo > 0 ? ` (recargo ${recargo}%)` : " sin interés";
+    preview.style.display = "block";
+    preview.textContent   = `${cuotas} cuota${cuotas!==1?"s":""} de $${valorCuota.toLocaleString("es-AR")}${recargoStr} — Total: $${totalConRec.toLocaleString("es-AR")}`;
   }
 }
 
@@ -4668,14 +4753,14 @@ function getSuggestedPrices(nombreProducto) {
 // ── Sección de precios en el modal ─────────────────────────────
 function actualizarSeccionPrecios() {
   const seccion = document.getElementById("seccion-precios-venta");
-  const secMP   = document.getElementById("seccion-medio-pago");
-  const secEmail = document.getElementById("seccion-email-cliente");
   if (!seccion) return;
   const esSalida = tipoSeleccionado === "SALIDA";
-  seccion.style.display  = esSalida ? "block" : "none";
-  if (secMP)    secMP.style.display    = esSalida ? "block" : "none";
-  if (secEmail) secEmail.style.display = esSalida ? "block" : "none";
-  if (esSalida) actualizarTablaPrecios();
+  // Solo mostrar si es venta Y hay al menos un producto en el carrito
+  seccion.style.display = (esSalida && carrito.length > 0) ? "block" : "none";
+  if (esSalida && carrito.length > 0) {
+    actualizarTablaPrecios();
+    actualizarBloqueFinanciero();
+  }
 }
 
 function actualizarTablaPrecios() {
