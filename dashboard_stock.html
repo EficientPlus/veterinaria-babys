@@ -1296,7 +1296,25 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
           <div class="table-card" id="movCard">
             <div class="table-header">
               <span class="table-title">📅 Últimos registros</span>
-              <span class="table-count" id="movCount">—</span>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <div style="position:relative;">
+                  <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;">🔍</span>
+                  <input type="text" id="movSearch" placeholder="Buscar producto..."
+                    oninput="filtrarMovimientos()"
+                    style="padding:6px 10px 6px 28px;border:1px solid var(--border);border-radius:7px;
+                    background:var(--card);color:var(--text);font-size:12.5px;font-family:'Inter',sans-serif;
+                    outline:none;width:170px;">
+                </div>
+                <select id="movFiltroTipo" onchange="filtrarMovimientos()"
+                  style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;
+                  background:var(--card);color:var(--text);font-size:12.5px;font-family:'Inter',sans-serif;outline:none;">
+                  <option value="">Todos</option>
+                  <option value="ENTRADA">⬆️ Entradas</option>
+                  <option value="SALIDA">⬇️ Salidas</option>
+                  <option value="AJUSTE">🔄 Ajustes</option>
+                </select>
+                <span class="table-count" id="movCount">—</span>
+              </div>
             </div>
             <div style="overflow-x:auto;">
               <table>
@@ -1318,6 +1336,40 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
 
         <!-- TAB: VENTAS -->
         <div id="tab-ventas" class="tab-content">
+
+          <!-- Filtro de período -->
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+            <span style="font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:0.6px;">Período:</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button onclick="setVentasPeriodo('hoy',this)" class="vent-filtro active"
+                style="padding:5px 13px;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;
+                border:1px solid #6366f1;background:rgba(99,102,241,0.12);color:#a78bfa;transition:all 0.2s;">Hoy</button>
+              <button onclick="setVentasPeriodo('semana',this)" class="vent-filtro"
+                style="padding:5px 13px;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;
+                border:1px solid var(--border);background:transparent;color:var(--text-2);transition:all 0.2s;">Esta semana</button>
+              <button onclick="setVentasPeriodo('mes',this)" class="vent-filtro"
+                style="padding:5px 13px;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;
+                border:1px solid var(--border);background:transparent;color:var(--text-2);transition:all 0.2s;">Este mes</button>
+              <button onclick="setVentasPeriodo('todo',this)" class="vent-filtro"
+                style="padding:5px 13px;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;
+                border:1px solid var(--border);background:transparent;color:var(--text-2);transition:all 0.2s;">Todo</button>
+              <div style="display:flex;align-items:center;gap:5px;margin-left:4px;">
+                <input type="date" id="ventasFechaDesde"
+                  style="padding:4px 8px;border:1px solid var(--border);border-radius:7px;background:var(--card);
+                  color:var(--text);font-size:12px;font-family:'Inter',sans-serif;outline:none;">
+                <span style="color:var(--text-3);font-size:12px;">→</span>
+                <input type="date" id="ventasFechaHasta"
+                  style="padding:4px 8px;border:1px solid var(--border);border-radius:7px;background:var(--card);
+                  color:var(--text);font-size:12px;font-family:'Inter',sans-serif;outline:none;">
+                <button onclick="setVentasPeriodo('custom',null)"
+                  style="padding:4px 10px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;
+                  border:1px solid var(--border);background:transparent;color:var(--text-2);font-family:'Inter',sans-serif;">
+                  Aplicar
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div id="ventasContainer">
             <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;gap:14px;color:var(--text-3);">
               <div class="spinner"></div>
@@ -1344,6 +1396,19 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
             </div>
 
             <div class="table-card visible" style="padding:24px;margin-bottom:16px;">
+
+              <!-- Escáner de código de barras -->
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;
+                background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.25);
+                border-radius:9px;padding:7px 12px;">
+                <span style="font-size:14px;">📷</span>
+                <input type="text" id="relScannerInput"
+                  placeholder="Escaneá el código de barras para seleccionar el producto automáticamente..."
+                  onkeydown="onRelScannerKey(event)" autocomplete="off"
+                  style="flex:1;background:transparent;border:none;outline:none;
+                  color:#86efac;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;">
+                <span id="relScannerStatus" style="font-size:11px;color:#6b7280;white-space:nowrap;">o buscá abajo</span>
+              </div>
 
               <!-- Filtro proveedor + buscador -->
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
@@ -1462,6 +1527,20 @@ button, a, [onclick], select, input, .nav-item, .filter-tab, .rp-chip, .tipo-pil
               </div>
 
               <div class="form-label" style="margin-bottom:6px;">Buscar producto del stock</div>
+
+              <!-- Escáner -->
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;
+                background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.25);
+                border-radius:9px;padding:7px 12px;">
+                <span style="font-size:14px;">📷</span>
+                <input type="text" id="presScannerInput"
+                  placeholder="Escaneá el código de barras para agregar el producto..."
+                  onkeydown="onPresScannerKey(event)" autocomplete="off"
+                  style="flex:1;background:transparent;border:none;outline:none;
+                  color:#86efac;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;">
+                <span id="presScannerStatus" style="font-size:11px;color:#6b7280;white-space:nowrap;">o buscá abajo</span>
+              </div>
+
               <div style="position:relative;margin-bottom:10px;">
                 <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none;">🔍</span>
                 <input type="text" id="presSearch" placeholder="Escribí nombre del producto..."
@@ -2374,24 +2453,41 @@ function renderMovimientos(rows) {
     tipo:(r[4]||"").trim(),  cantidad:(r[5]||"").trim(), responsable:(r[6]||"").trim()
   }));
 
-  const recientes=validos.slice(-20).reverse();
-  if (recientes.length===0) {
+  filtrarMovimientos();
+}
+
+function filtrarMovimientos() {
+  const tbody  = document.getElementById("movBody");
+  if (!tbody || !movDataGlobal.length) return;
+
+  const q      = (document.getElementById("movSearch")?.value || "").toLowerCase().trim();
+  const tipo   = document.getElementById("movFiltroTipo")?.value || "";
+
+  const filtrados = movDataGlobal.filter(m => {
+    const matchQ    = !q    || m.producto.toLowerCase().includes(q) || m.responsable.toLowerCase().includes(q);
+    const matchTipo = !tipo || m.tipo.toUpperCase().includes(tipo.toUpperCase());
+    return matchQ && matchTipo;
+  }).slice().reverse().slice(0, 100); // máximo 100 para no colapsar
+
+  document.getElementById("movCount").textContent = filtrados.length + " registros";
+
+  if (!filtrados.length) {
     tbody.innerHTML=`<tr><td colspan="5" class="empty"><div class="empty-icon">📋</div>Sin movimientos</td></tr>`;
     return;
   }
-  recientes.forEach(row=>{
-    const fecha=(row[1]||"").trim(), prod=(row[2]||"").trim();
-    const tipo=(row[4]||"").trim(), cant=(row[5]||"").trim();
-    const resp=(row[6]||"").trim().split("—")[0].trim();
+
+  tbody.innerHTML = "";
+  filtrados.forEach(m => {
     let tipoClass="ajuste", tipoLabel="🔄 Ajuste";
-    if (tipo.includes("ENTRADA")) { tipoClass="entrada"; tipoLabel="⬆️ Entrada"; }
-    else if (tipo.includes("SALIDA")) { tipoClass="salida"; tipoLabel="⬇️ Salida"; }
+    if (m.tipo.includes("ENTRADA")) { tipoClass="entrada"; tipoLabel="⬆️ Entrada"; }
+    else if (m.tipo.includes("SALIDA")) { tipoClass="salida"; tipoLabel="⬇️ Salida"; }
+    const resp = m.responsable.split("—")[0].trim();
     const tr=document.createElement("tr");
     tr.innerHTML=`
-      <td style="color:#94a3b8;font-size:12.5px;font-weight:500;width:110px">${fecha}</td>
-      <td style="font-weight:600;text-align:left;color:#ffffff;">${prod}</td>
+      <td style="color:#94a3b8;font-size:12.5px;font-weight:500;width:110px">${m.fecha}</td>
+      <td style="font-weight:600;text-align:left;color:#ffffff;">${m.producto}</td>
       <td style="text-align:center;"><span class="mov-badge ${tipoClass}">${tipoLabel}</span></td>
-      <td style="text-align:center;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:16px;color:#ffffff;">${cant}</td>
+      <td style="text-align:center;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:16px;color:#ffffff;">${m.cantidad}</td>
       <td style="color:#94a3b8;font-size:12.5px;font-weight:500;text-align:left;">${resp}</td>`;
     tbody.appendChild(tr);
   });
@@ -3667,6 +3763,34 @@ function renderDashboard() {
   }
 }
 
+let ventasPeriodoActivo = "mes"; // hoy | semana | mes | todo | custom
+let ventasFechaDesde = null;
+let ventasFechaHasta = null;
+
+function setVentasPeriodo(periodo, btn) {
+  ventasPeriodoActivo = periodo;
+  if (periodo === "custom") {
+    const d = document.getElementById("ventasFechaDesde")?.value;
+    const h = document.getElementById("ventasFechaHasta")?.value;
+    ventasFechaDesde = d ? new Date(d + "T00:00:00") : null;
+    ventasFechaHasta = h ? new Date(h + "T23:59:59") : null;
+  }
+  // Actualizar estilos de botones
+  document.querySelectorAll(".vent-filtro").forEach(b => {
+    b.style.borderColor = "var(--border)";
+    b.style.background  = "transparent";
+    b.style.color       = "var(--text-2)";
+    b.classList.remove("active");
+  });
+  if (btn) {
+    btn.style.borderColor = "#6366f1";
+    btn.style.background  = "rgba(99,102,241,0.12)";
+    btn.style.color       = "#a78bfa";
+    btn.classList.add("active");
+  }
+  renderVentasTab();
+}
+
 async function loadVentas() {
   const container = document.getElementById("ventasContainer");
   if (!container) return;
@@ -3727,8 +3851,18 @@ function renderVentasTab() {
 
   const inRange = (v, desde, hasta) => { try { const d=parseFecha(v.fecha); return d>=desde&&d<=hasta; } catch(e){return false;} };
 
+  // Aplicar filtro de período activo
+  let ventasFiltradas = ventas;
+  if (ventasPeriodoActivo === "hoy")    ventasFiltradas = ventas.filter(v => v.fecha.startsWith(hoyStr));
+  else if (ventasPeriodoActivo === "semana") ventasFiltradas = ventas.filter(v => inRange(v, inicioSemana, ahora));
+  else if (ventasPeriodoActivo === "mes")    ventasFiltradas = ventas.filter(v => inRange(v, inicioMes, ahora));
+  else if (ventasPeriodoActivo === "custom" && ventasFechaDesde && ventasFechaHasta)
+    ventasFiltradas = ventas.filter(v => inRange(v, ventasFechaDesde, ventasFechaHasta));
+  // "todo" → sin filtro
+
   const vHoy     = ventas.filter(v => v.fecha.startsWith(hoyStr));
-  const vSemana  = ventas.filter(v => inRange(v, inicioSemana, ahora));
+  const vSemana  = ventasPeriodoActivo === "semana" ? ventasFiltradas : ventas.filter(v => inRange(v, inicioSemana, ahora));
+  const vMes     = ventasPeriodoActivo === "mes"    ? ventasFiltradas : ventas.filter(v => inRange(v, inicioMes, ahora));
   const vSemAnt  = ventas.filter(v => inRange(v, inicioSemAnt, new Date(inicioSemana.getTime()-1)));
   const vMes     = ventas.filter(v => inRange(v, inicioMes, ahora));
   const vMesAnt  = ventas.filter(v => inRange(v, inicioMesAnt, finMesAnt));
@@ -5051,6 +5185,58 @@ function exportarStockExcel() {
   XLSX.utils.book_append_sheet(wb, ws, "Stock");
 
   XLSX.writeFile(wb, `stock_veterinaria_babys_${fecha}.xlsx`);
+}
+
+// ── Escáner en Relevamiento ───────────────────────────────────────────────
+function onRelScannerKey(e) {
+  if (e.key !== "Enter") return;
+  const codigo   = document.getElementById("relScannerInput").value.trim();
+  const statusEl = document.getElementById("relScannerStatus");
+  document.getElementById("relScannerInput").value = "";
+  if (!codigo) return;
+
+  const producto = stockDataGlobal.find(p => p.codigo && p.codigo === codigo);
+  if (producto) {
+    // Simular selección en el relevamiento
+    const match = preciosDataGlobal.find(pr =>
+      pr.desc.toLowerCase().includes(producto.nombre.toLowerCase().split(" ").slice(0,3).join(" ").toLowerCase())
+    );
+    if (match || producto) {
+      const data = match
+        ? { nombre: producto.nombre, proveedor: match.proveedor || "", costo: match.conIVA || 0 }
+        : { nombre: producto.nombre, proveedor: "", costo: 0 };
+      elegirRelProducto(data);
+    }
+    statusEl.style.color = "#86efac";
+    statusEl.textContent = "✅ " + producto.nombre.slice(0, 22) + (producto.nombre.length > 22 ? "…" : "");
+    setTimeout(() => { statusEl.style.color = "#6b7280"; statusEl.textContent = "o buscá abajo"; }, 2500);
+    setTimeout(() => document.getElementById("relCantidad")?.focus(), 100);
+  } else {
+    statusEl.style.color = "#fca5a5";
+    statusEl.textContent = "❌ Código no encontrado";
+    setTimeout(() => { statusEl.style.color = "#6b7280"; statusEl.textContent = "o buscá abajo"; }, 2500);
+  }
+}
+
+// ── Escáner en Presupuestos ───────────────────────────────────────────────
+function onPresScannerKey(e) {
+  if (e.key !== "Enter") return;
+  const codigo   = document.getElementById("presScannerInput").value.trim();
+  const statusEl = document.getElementById("presScannerStatus");
+  document.getElementById("presScannerInput").value = "";
+  if (!codigo) return;
+
+  const producto = stockDataGlobal.find(p => p.codigo && p.codigo === codigo);
+  if (producto) {
+    elegirPresProducto(producto);
+    statusEl.style.color = "#86efac";
+    statusEl.textContent = "✅ " + producto.nombre.slice(0, 22) + (producto.nombre.length > 22 ? "…" : "");
+    setTimeout(() => { statusEl.style.color = "#6b7280"; statusEl.textContent = "o buscá abajo"; }, 2500);
+  } else {
+    statusEl.style.color = "#fca5a5";
+    statusEl.textContent = "❌ Código no encontrado";
+    setTimeout(() => { statusEl.style.color = "#6b7280"; statusEl.textContent = "o buscá abajo"; }, 2500);
+  }
 }
 
 // ── MODO ESCÁNER (tabla Stock) ─────────────────────────────────────────────
