@@ -2551,7 +2551,7 @@ function renderMarkdown(text) {
   return text
     .replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--text);">$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/^### (.+)$/gm, '<div style="font-weight:700;font-size:13px;margin:10px 0 3px;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;">$1</div>')
+    .replace(/^### (.+)$/gm, '<div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:0.8px;margin:12px 0 4px;padding-bottom:4px;border-bottom:1px solid var(--border);">$1</div>')
     .replace(/^## (.+)$/gm, '<div style="font-weight:700;font-size:15px;margin:10px 0 4px;color:#1E293B;">$1</div>')
     .replace(/^• (.+)$/gm, '<div style="display:flex;gap:8px;margin:5px 0;align-items:flex-start;"><span style="color:#3B82F6;font-weight:900;margin-top:1px;">•</span><span>$1</span></div>')
     .replace(/^- (.+)$/gm,  '<div style="display:flex;gap:8px;margin:5px 0;align-items:flex-start;"><span style="color:#3B82F6;font-weight:900;margin-top:1px;">•</span><span>$1</span></div>')
@@ -2672,7 +2672,7 @@ function construirContexto() {
 3. GUÍA: Explicás paso a paso cómo hacer cualquier tarea.
 4. CONSULTOR VETERINARIO: Respondés dudas básicas sobre productos, especies y uso.
 
-ESTILO: Directo, amigable, como un colega con experiencia. Nunca corporativo. Longitud justa — si es simple, 1-2 líneas; si requiere pasos, numeralos. Nunca inventes datos.
+ESTILO: Directo, amigable, como un colega con experiencia. Nunca corporativo. Longitud justa — si es simple, 1-2 líneas; si requiere pasos, numeralos. Nunca inventes datos. No uses encabezados tipo "### Semana del..." ni separadores de fecha en tus respuestas.
 
 ═══ CÓMO USAR EL SISTEMA ═══
 REGISTRAR VENTA: Botón "💵 Registrar venta" → buscar producto → cantidad → precio venta → medio pago → responsable → Guardar. Si efectivo: podés aplicar % descuento. Si tarjeta/MP: podés poner cuotas y % recargo.
