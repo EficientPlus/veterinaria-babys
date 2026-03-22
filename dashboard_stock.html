@@ -2643,126 +2643,83 @@ function construirContexto() {
   hace7.setDate(hace7.getDate()-7); hace14.setDate(hace14.getDate()-14);
   const parseDate=str=>{if(!str)return null;const p=str.split("/");return p.length===3?new Date(p[2],p[1]-1,p[0]):new Date(str);};
   const movSemana=movDataGlobal.filter(m=>{const d=parseDate(m.fecha);return d&&d>=hace7;});
-  const movSemana2=movDataGlobal.filter(m=>{const d=parseDate(m.fecha);return d&&d>=hace14&&d<hace7;});
-  const ventas7={},ventas14={};
+  const ventas7={};
   movSemana.filter(m=>m.tipo.includes("SALIDA")).forEach(m=>{ventas7[m.producto]=(ventas7[m.producto]||0)+(parseFloat(m.cantidad)||0);});
-  movSemana2.filter(m=>m.tipo.includes("SALIDA")).forEach(m=>{ventas14[m.producto]=(ventas14[m.producto]||0)+(parseFloat(m.cantidad)||0);});
   const sinStock=stockDataGlobal.filter(p=>p.estado==="Sin stock");
   const reponer=stockDataGlobal.filter(p=>p.estado==="Reponer");
   const ok=stockDataGlobal.filter(p=>p.estado==="OK");
   const valorTotal=stockDataGlobal.reduce((s,p)=>s+p.stock*p.precio,0);
-  const activos=new Set([...Object.keys(ventas7),...Object.keys(ventas14)]);
+  const activos=new Set(Object.keys(ventas7));
   const parados=stockDataGlobal.filter(p=>!activos.has(p.nombre)&&p.stock>0);
   const predicciones=[];
-  stockDataGlobal.forEach(p=>{const v=ventas7[p.nombre]||0;if(v>0&&p.stock>0)predicciones.push({nombre:p.nombre,dias:Math.round((p.stock/v)*7),ventas:v});});
-  const totalVentas7=Object.values(ventas7).reduce((s,v)=>s+v,0);
-  const totalVentas14=Object.values(ventas14).reduce((s,v)=>s+v,0);
+  stockDataGlobal.forEach(p=>{const v=ventas7[p.nombre]||0;if(v>0&&p.stock>0)predicciones.push({nombre:p.nombre,dias:Math.round((p.stock/v)*7)});});
 
-  return `Sos el asistente de stock de Veterinaria Babys. Respondés como un encargado de depósito con experiencia: directo, amigable y al punto. Nunca usés formato de informe corporativo.
+  let ventasTexto="VENTAS: Sin datos registrados.";
+  if(ventasDataGlobal&&ventasDataGlobal.length>1){
+    const vRows=ventasDataGlobal.slice(1).filter(r=>r[2]&&r[2].trim());
+    if(vRows.length){
+      const vData=vRows.map(r=>({fecha:(r[1]||"").trim(),producto:(r[2]||"").trim(),cantidad:Math.abs(Number(r[4])||0),total:Number(r[7])||0,ganancia:Number(r[8])||0,margen:parseFloat(r[9])||0}));
+      const ahora2=new Date();
+      const pad2=n=>String(n).padStart(2,"0");
+      const hoy2=`${pad2(ahora2.getDate())}/${pad2(ahora2.getMonth()+1)}/${ahora2.getFullYear()}`;
+      const inicioMes2=new Date(ahora2.getFullYear(),ahora2.getMonth(),1);
+      const parsF=str=>{const p=(str||"").split(" ")[0];if(p.includes("/")){const[d,m,y]=p.split("/");return new Date(+y,+m-1,+d);}return new Date(p);};
+      const vHoy2=vData.filter(v=>v.fecha.startsWith(hoy2));
+      const vSem2=vData.filter(v=>{try{return parsF(v.fecha)>=hace7;}catch(e){return false;}});
+      const vMes2=vData.filter(v=>{try{return parsF(v.fecha)>=inicioMes2;}catch(e){return false;}});
+      const porProd2={};
+      vData.forEach(v=>{porProd2[v.producto]=(porProd2[v.producto]||0)+v.cantidad;});
+      const topProd2=Object.entries(porProd2).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([p,c])=>`${p} (${c})`).join(", ");
+      ventasTexto=`VENTAS:
+- Hoy: $${Math.round(vHoy2.reduce((s,v)=>s+v.total,0)).toLocaleString("es-AR")} (${vHoy2.length} ventas)
+- Esta semana: $${Math.round(vSem2.reduce((s,v)=>s+v.total,0)).toLocaleString("es-AR")} (${vSem2.length} ventas)
+- Este mes: $${Math.round(vMes2.reduce((s,v)=>s+v.total,0)).toLocaleString("es-AR")} | Ganancia: $${Math.round(vMes2.reduce((s,v)=>s+v.ganancia,0)).toLocaleString("es-AR")}
+- Más vendidos histórico: ${topProd2||"—"}`;
+    }
+  }
 
-REGLAS DE RESPUESTA (OBLIGATORIAS):
-- Máximo 3 viñetas con lo que necesita atención HOY. Si algo está bien, no lo menciones.
-- Una sola tarea en negrita al final: "**Tarea de hoy:** [acción concreta]"
-- Tono: como si le hablaras a un colega, nada de "resumen ejecutivo" ni "insights".
-- Si no hay nada urgente, decilo en 1 oración y sugerí qué mirar.
-- Al final, 2 botones de acción cortos (sin párrafos extra).
+  const preciosTexto=preciosDataGlobal.length>0
+    ?`PRECIOS: ${preciosDataGlobal.length} productos de ${new Set(preciosDataGlobal.map(p=>p.proveedor)).size} proveedores cargados.`
+    :"PRECIOS: Sin datos de proveedores cargados.";
 
-EJEMPLOS DE RESPUESTA CORRECTA:
-"Hay 2 cosas urgentes:
-• Antipulgas Perro: sin stock, estás perdiendo ventas
-• Alimento Cachorro 3kg: te quedan 3 unidades, se acaba esta semana
-**Tarea de hoy:** Llamá al proveedor y pedí urgente esos 2 productos."
+  const stockDetalle=stockDataGlobal.map(p=>{
+    const pred=predicciones.find(x=>x.nombre===p.nombre);
+    return `- ${p.nombre}: ${p.stock} u (mín ${p.minimo}) | ${p.estado}${pred?" | agota ~"+pred.dias+"d":""}`;
+  }).join("\n");
 
-EJEMPLO INCORRECTO (nunca hagas esto):
-"📋 Resumen ejecutivo: El inventario presenta... 💡 Insights: 1) Los datos muestran... ⚡ Recomendación accionable..."
+  return `Sos el asistente inteligente de Veterinaria Babys, una veterinaria argentina. Tenés 4 roles simultáneos:
+1. EXPERTO DEL SISTEMA: Sabés usar cada función del dashboard.
+2. ANALISTA: Analizás stock y ventas para dar recomendaciones con datos reales.
+3. GUÍA: Explicás paso a paso cómo hacer cualquier tarea.
+4. CONSULTOR VETERINARIO: Respondés dudas básicas sobre productos, especies y uso.
 
-Fecha: ${hoyStr}. Productos: ${stockDataGlobal.length}.
+ESTILO: Directo, amigable, como un colega con experiencia. Nunca corporativo. Longitud justa — si es simple, 1-2 líneas; si requiere pasos, numeralos. Nunca inventes datos.
 
-DATOS DE STOCK:
-- OK: ${ok.length} | Reponer: ${reponer.length} | Sin stock: ${sinStock.length}
-- Valor inventario: $${Math.round(valorTotal).toLocaleString("es-AR")}
-- Sin movimiento 14d: ${parados.length} productos
+═══ CÓMO USAR EL SISTEMA ═══
+REGISTRAR VENTA: Botón "💵 Registrar venta" → buscar producto → cantidad → precio venta → medio pago → responsable → Guardar. Si efectivo: podés aplicar % descuento. Si tarjeta/MP: podés poner cuotas y % recargo.
+AJUSTAR STOCK: Tab Stock → ✏️ Ajustar → cambiar cantidad/mínimo/máximo → Guardar. También podés cargar el código de barras del producto ahí.
+RELEVAMIENTO: Herramientas → Relevamiento → buscar producto o escanear → ingresar cantidad contada → Guardar.
+PRESUPUESTO: Herramientas → Presupuestos → agregar productos con precio → "Ver presupuesto" → "Descargar PDF".
+ORDEN DE COMPRA: Herramientas → Órdenes de compra → Nueva orden → proveedor + productos + cantidades → guardar como Borrador → Enviada → Recibida (suma stock automáticamente).
+EXPORTAR EXCEL: Tab Stock → botón "📥 Exportar Excel".
+FILTRAR VENTAS: Tab Ventas → botones Hoy / Esta semana / Este mes / Todo / Rango de fechas custom.
+CARGAR PRECIOS PROVEEDORES: El proveedor manda Excel o PDF por WhatsApp → el socio lo reenvía por email con el nombre del proveedor en el asunto → el sistema lo procesa solo.
+VER MOVIMIENTOS: Tab Movimientos → podés buscar por producto y filtrar por tipo (Entrada/Salida/Ajuste).
+
+═══ DATOS DEL NEGOCIO (${hoyStr}) ═══
+STOCK: ${ok.length} OK | ${reponer.length} reponer | ${sinStock.length} sin stock | Valor: $${Math.round(valorTotal).toLocaleString("es-AR")}
+Sin movimiento 14 días: ${parados.length} productos
+${sinStock.length>0?"⚠️ SIN STOCK: "+sinStock.map(p=>p.nombre).join(", "):""}
+${reponer.length>0?"⚠️ REPONER: "+reponer.map(p=>p.nombre+" ("+p.stock+"/"+p.minimo+")").join(", "):""}
+
+${ventasTexto}
+${preciosTexto}
 
 STOCK DETALLADO:
-${stockDataGlobal.map(p=>{const pred=predicciones.find(x=>x.nombre===p.nombre);return `- ${p.nombre}: stock ${p.stock} (mín ${p.minimo}) | estado: ${p.estado}${pred?" | se agota en ~"+pred.dias+"d":""}`;}).join("\n")}
+${stockDetalle}
 
-ALERTAS:
-${sinStock.length>0?"SIN STOCK: "+sinStock.map(p=>p.nombre).join(", "):"ninguno sin stock"}
-${reponer.length>0?"REPONER: "+reponer.map(p=>p.nombre+" ("+p.stock+"/"+p.minimo+")").join(", "):"ninguno para reponer"}
-
-${(()=>{
-  // Datos de ventas — ÚNICA fuente de verdad: ventasDataGlobal
-  if (!ventasDataGlobal || ventasDataGlobal.length < 2) return "VENTAS: Sin datos de ventas registrados aún.";
-  const vRows = ventasDataGlobal.slice(1).filter(r => r[2] && r[2].trim());
-  if (!vRows.length) return "VENTAS: Sin ventas registradas aún.";
-  const vData = vRows.map(r => ({
-    fecha: (r[1]||"").trim(), producto: (r[2]||"").trim(),
-    cantidad: Math.abs(Number(r[4])||0), total: Number(r[7])||0,
-    ganancia: Number(r[8])||0, margen: parseFloat(r[9])||0,
-    medioPago: (r[11]||"Efectivo").trim()
-  }));
-  const ahora2 = new Date();
-  const pad2 = n => String(n).padStart(2,"0");
-  const hoy2 = `${pad2(ahora2.getDate())}/${pad2(ahora2.getMonth()+1)}/${ahora2.getFullYear()}`;
-  const inicioSem2 = new Date(ahora2); inicioSem2.setDate(ahora2.getDate()-7);
-  const inicioMes2 = new Date(ahora2.getFullYear(), ahora2.getMonth(), 1);
-  const parsF = str => { const p=(str||"").split(" ")[0]; if(p.includes("/")){ const [d,m,y]=p.split("/"); return new Date(+y,+m-1,+d); } return new Date(p); };
-  const vHoy2 = vData.filter(v => v.fecha.startsWith(hoy2));
-  const vSem2 = vData.filter(v => { try { return parsF(v.fecha) >= inicioSem2; } catch(e) { return false; } });
-  const vMes2 = vData.filter(v => { try { return parsF(v.fecha) >= inicioMes2; } catch(e) { return false; } });
-  const totalHoy2 = vHoy2.reduce((s,v)=>s+v.total,0);
-  const totalSem2 = vSem2.reduce((s,v)=>s+v.total,0);
-  const totalMes2 = vMes2.reduce((s,v)=>s+v.total,0);
-  const ganMes2   = vMes2.reduce((s,v)=>s+v.ganancia,0);
-  const mrgProm2  = vData.length ? Math.round(vData.reduce((s,v)=>s+v.margen,0)/vData.length) : 0;
-  const porMedio2 = {};
-  vMes2.forEach(v=>{ porMedio2[v.medioPago]=(porMedio2[v.medioPago]||0)+v.total; });
-  const porProd2 = {};
-  vData.forEach(v=>{ porProd2[v.producto]=(porProd2[v.producto]||0)+v.cantidad; });
-  const topProd2 = Object.entries(porProd2).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([p,c])=>`${p} (${c} uds)`).join(", ");
-  const tendencia = totalSem2 > 0 ? "con actividad" : "sin ventas esta semana";
-
-  // Margen por producto vendido (ganancia / costo, igual que la tabla)
-  const margenPorProd = {};
-  vData.forEach(v => {
-    if (!margenPorProd[v.producto]) margenPorProd[v.producto] = { totalVenta: 0, totalGanancia: 0, totalCosto: 0, uds: 0 };
-    margenPorProd[v.producto].totalVenta    += v.total;
-    margenPorProd[v.producto].totalGanancia += v.ganancia;
-    margenPorProd[v.producto].totalCosto    += (v.total - v.ganancia);
-    margenPorProd[v.producto].uds           += v.cantidad;
-  });
-  const detallePorProd = Object.entries(margenPorProd)
-    .map(([p, d]) => ({
-      nombre: p,
-      uds: d.uds,
-      total: d.totalVenta,
-      ganancia: d.totalGanancia,
-      margen: d.totalCosto > 0 ? Math.round((d.totalGanancia / d.totalCosto) * 100) : 0
-    }))
-    .sort((a, b) => b.margen - a.margen);
-  const detalleStr = detallePorProd.map(p =>
-    `  • ${p.nombre}: ${p.uds} uds | total $${Math.round(p.total).toLocaleString("es-AR")} | ganancia $${Math.round(p.ganancia).toLocaleString("es-AR")} | margen ${p.margen}%`
-  ).join("\n");
-  return `VENTAS (fuente: registro de ventas del sistema):
-- Hoy: $${Math.round(totalHoy2).toLocaleString("es-AR")} (${vHoy2.length} ops)
-- Esta semana: $${Math.round(totalSem2).toLocaleString("es-AR")} (${vSem2.length} ops) — ${tendencia}
-- Este mes: $${Math.round(totalMes2).toLocaleString("es-AR")} | Ganancia: $${Math.round(ganMes2).toLocaleString("es-AR")} | Margen prom: ${mrgProm2}%
-- Total ventas registradas: ${vData.length}
-- Productos más vendidos (histórico): ${topProd2||"—"}
-- Medios de pago este mes: ${Object.entries(porMedio2).map(([m,t])=>`${m}: $${Math.round(t).toLocaleString("es-AR")}`).join(", ")||"—"}
-
-DETALLE POR PRODUCTO VENDIDO (margen individual, ordenado de mayor a menor margen):
-${detalleStr||"—"}`;
-})()}
-
-${(()=>{
-  if(!preciosDataGlobal||preciosDataGlobal.length===0) return "Sin datos de precios.";
-  const porProv={};
-  preciosDataGlobal.forEach(p=>{if(!porProv[p.proveedor])porProv[p.proveedor]={total:0,margenes:[]};porProv[p.proveedor].total++;if(p.venta>0)porProv[p.proveedor].margenes.push(p.margen);});
-  const mg=preciosDataGlobal.filter(p=>p.margen!==null);
-  const margenG=mg.length>0?Math.round(mg.reduce((s,p)=>s+(p.margen||0),0)/mg.length):0;
-  return `PRECIOS: ${preciosDataGlobal.length} productos | ${Object.keys(porProv).length} proveedores | margen promedio: ${margenG}%`;
-})()}`;
+═══ VETERINARIA ═══
+Respondé preguntas sobre: alimentación (cachorros/adultos/senior, perro/gato/ave, razas), antiparasitarios (pipetas/comprimidos/collares — cuándo y frecuencia), higiene (champús, frecuencia de baño), suplementos (condroprotectores, omega 3, probióticos), productos del stock (para qué sirve cada uno). Si la consulta es médica seria, siempre decí que consulten al veterinario.`;
 }
 
 function renderPrecios(rows) {
@@ -2881,7 +2838,7 @@ async function enviarMensaje() {
   btnEnviar.disabled=true; btnEnviar.textContent="...";
   const loadingMsg=agregarMensaje("ai",'<div style="display:flex;align-items:center;gap:7px;opacity:0.6;"><div style="width:7px;height:7px;background:#3B82F6;border-radius:50%;animation:spin 1s linear infinite;"></div>Analizando datos...</div>');
   try {
-    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1024,system:construirContexto(),messages:chatHistory.slice(-6)})});
+    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:2048,system:construirContexto(),messages:chatHistory.slice(-12)})});
     const data=await res.json();
     if(data.error){loadingMsg.innerHTML="❌ "+data.error.message;chatHistory.pop();}
     else{const r=data.content[0].text;loadingMsg.innerHTML=renderMarkdown(r);chatHistory.push({role:"assistant",content:r});if(chatHistory.length>12)chatHistory=chatHistory.slice(-12);}
