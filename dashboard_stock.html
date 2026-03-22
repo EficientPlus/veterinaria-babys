@@ -2687,7 +2687,7 @@ VER MOVIMIENTOS: Tab Movimientos → podés buscar por producto y filtrar por ti
 
 ═══ DATOS DEL NEGOCIO (${hoyStr}) ═══
 STOCK: ${ok.length} OK | ${reponer.length} reponer | ${sinStock.length} sin stock | Valor: $${Math.round(valorTotal).toLocaleString("es-AR")}
-Sin movimiento 14 días: ${parados.length} productos
+Sin movimiento 14 días: ${parados.length > 0 ? parados.map(p=>p.nombre).join(", ") : "ninguno"}
 ${sinStock.length>0?"⚠️ SIN STOCK: "+sinStock.map(p=>p.nombre).join(", "):""}
 ${reponer.length>0?"⚠️ REPONER: "+reponer.map(p=>p.nombre+" ("+p.stock+"/"+p.minimo+")").join(", "):""}
 
