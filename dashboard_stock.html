@@ -3916,7 +3916,7 @@ function renderVentasTab() {
   const medioColores = { "Efectivo":"#86efac", "Tarjeta":"#818cf8", "Mercado Pago":"#38bdf8", "Transferencia":"#fdba74" };
   const totalMedios = Object.values(porMedio).reduce((s,v)=>s+v,0);
 
-  const ultimas = [...ventas].reverse().slice(0, 20);
+  const ultimas = [...ventasFiltradas].reverse().slice(0, 50);
   window._ultimasVentas = ultimas;
 
   // Ticket promedio del mes (total / nro de ventas únicas por fecha+responsable)
@@ -3952,34 +3952,6 @@ function renderVentasTab() {
           <div class="kpi-label">Margen promedio</div>
           <div class="kpi-number" style="font-size:30px;">${mrgProm}%</div>
           <div class="kpi-sub">${arrowHtml(pctMrg)}</div>
-        </div>
-      </div>
-
-      <!-- KPIs secundarios — ticket promedio + volumen -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
-        <div class="kpi-card visible" style="border-top-color:#818cf8;padding:14px 18px;">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-            <div>
-              <div class="kpi-label" style="font-size:10.5px;">Ticket promedio del mes</div>
-              <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:22px;color:#fff;margin-top:4px;">${fmt(ticketProm)}</div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-size:10.5px;color:var(--text-3);margin-bottom:4px;">por venta</div>
-              ${arrowHtml(pctTicket)}
-            </div>
-          </div>
-        </div>
-        <div class="kpi-card visible" style="border-top-color:#a78bfa;padding:14px 18px;">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-            <div>
-              <div class="kpi-label" style="font-size:10.5px;">Ventas este mes</div>
-              <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:22px;color:#fff;margin-top:4px;">${vMes.length} <span style="font-size:13px;font-weight:500;color:var(--text-3);">operaciones</span></div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-size:10.5px;color:var(--text-3);margin-bottom:4px;">mes anterior</div>
-              <div style="font-size:13px;font-weight:600;color:var(--text-2);">${vMesAnt.length} ops</div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -4041,7 +4013,7 @@ function renderVentasTab() {
       <div class="table-card visible">
         <div class="table-header">
           <span class="table-title">💵 Últimas ventas</span>
-          <span class="table-count">${ventas.length} registros</span>
+          <span class="table-count">${ventasFiltradas.length} registros</span>
         </div>
         <div style="overflow-x:auto;overflow-y:visible;position:relative;">
           <table style="min-width:900px;">
